@@ -2,11 +2,11 @@
 
 /*
 Plugin Name: Shortcode Tester
-Plugin URI:  http://tpcti.wordpress.com/
+Plugin URI:  http://shortcodetester.wordpress.com/
 Description: a simple shortcode tester
 Version:     1.0
 Author:      Magenta Cuda
-Author URI:  http://magentacuda.wordpress.com
+Author URI:  https://profiles.wordpress.org/magenta-cuda/
 License:     GPL2
 */
 

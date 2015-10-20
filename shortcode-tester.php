@@ -2,7 +2,7 @@
 
 /*
  * Description:   A Shortcode Tester
- * Documentation: http://tpcti.wordpress.com/
+ * Documentation: http://shortcodetester.wordpress.com/
  * Author:        Magenta Cuda
  * License:       GPL2
  */
