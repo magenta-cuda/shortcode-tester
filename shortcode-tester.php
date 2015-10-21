@@ -31,10 +31,8 @@
     A Tiny Post Content Template Interpreter. However, since it is generally useful I have separated into its own plugin.
 */
 
-namespace {
+namespace mc_shortcode_tester {
         
-    include_once ABSPATH . 'wp-admin/includes/plugin.php';
-    
     $construct = function( ) {
 
         if ( is_admin( ) ) {
@@ -108,7 +106,7 @@ namespace {
             
         }   # if ( is_admin( ) ) {
             
-    };   # $construct = function( ) use ( &$mf2tk_the_do_macro ) {
+    };   # $construct = function( ) {
 
     $construct( );
 }
