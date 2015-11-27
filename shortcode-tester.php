@@ -41,6 +41,9 @@ namespace mc_shortcode_tester {
             
             add_action( 'wp_ajax_tpcti_eval_post_content', function( ) {
                 global $post;
+                if ( !wp_verify_nonce( $_REQUEST[ 'nonce' ], 'sct_ix-shortcode_tester_nonce' ) ) {
+                    wp_nonce_ays( '' );
+                }
                 $save_post = $post;
                 $post = get_post( $_POST[ 'post_id' ] );
                 echo do_shortcode( stripslashes( $_POST[ 'post_content' ] ) );
@@ -51,6 +54,13 @@ namespace mc_shortcode_tester {
             # things to do only on post.php and post-new.php admin pages
 
             $post_editor_actions = function( ) {
+
+                add_action( 'media_buttons', function( ) {
+                   $nonce = wp_create_nonce( 'sct_ix-shortcode_tester_nonce' );
+?>
+<button class="button" type="button" id="sct_ix-shortcode-tester" data-nonce="<?php echo $nonce; ?>">Shortcode Tester</button>
+<?php
+                } );
 
                 add_action( 'admin_enqueue_scripts', function( $hook ) {
                     if ( $hook !== 'post.php' && $hook !== 'post-new.php' ) {
@@ -65,7 +75,8 @@ namespace mc_shortcode_tester {
                 $shortcode_tester = function( ) {
 ?>
 <!-- start shortcode tester -->
-<div id="mf2tk-shortcode-tester" class="mf2tk-popup" style="display:none;">
+<div id="sct_ix-popup_margin" style="display:none;"></div>
+<div id="mf2tk-shortcode-tester" class="sct_ix-popup" style="display:none;">
     <h3>Shortcode Tester</h3>
     <button id="button-mf2tk-shortcode-tester-close">X</button>
     <div style="padding:0;margin:0;clear:both;">
