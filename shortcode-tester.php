@@ -45,8 +45,17 @@ namespace mc_shortcode_tester {
                     wp_nonce_ays( '' );
                 }
                 $save_post = $post;
-                $post = get_post( $_POST[ 'post_id' ] );
-                echo do_shortcode( stripslashes( $_POST[ 'post_content' ] ) );
+                $post = get_post( $_REQUEST[ 'post_id' ] );
+                $html = do_shortcode( stripslashes( $_REQUEST[ 'post_content' ] ) );
+                $dom = new \DOMDocument( );
+                $dom->preserveWhiteSpace = FALSE;
+                $dom->loadHTML( $html );
+                $dom->formatOutput = TRUE;
+                # saveHTML( ) doesn't format but saveXML( ) does. Why? see http://stackoverflow.com/questions/768215/php-pretty-print-html-not-tidy
+                $html = $dom->saveXML( );
+                # remove the <html> and <body> elements that were added by saveHTML( )
+                $html = preg_replace( [ '#^.*<body>\r?\n#s', '#</body>.*$#s' ], '', $html );
+                echo $html;
                 $post = $save_post;
                 die;
             } );   # add_action( 'wp_ajax_tpcti_eval_post_content', function( ) {
