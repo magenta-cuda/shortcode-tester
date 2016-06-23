@@ -13,14 +13,15 @@ jQuery(document).ready(function(){
         divPopupOuter.hide();
     });
     // "Shortcode Tester" evaluate button
-    divShortcode.find("button#mf2tk-shortcode-tester-evaluate").click(function(){
+    divShortcode.find("button#mf2tk-shortcode-tester-evaluate,button#mf2tk-shortcode-tester-evaluate-and-prettify").click(function(){
+        var prettify=this.id==="mf2tk-shortcode-tester-evaluate-and-prettify";
         var post_id=jQuery("form#post input#post_ID[type='hidden']").val();
         var source=jQuery("div#mf2tk-shortcode-tester div#mf2tk-shortcode-tester-area-source textarea").val();
         var button=jQuery("button#sct_ix-shortcode-tester")[0];
         jQuery("div#mf2tk-shortcode-tester div#mf2tk-shortcode-tester-area-result textarea").val("Evaluating..., please wait...");
         // Use AJAX to request the server to evaluate the post content fragment
-        jQuery.post(ajaxurl,{action:'tpcti_eval_post_content',post_id:post_id,post_content:source,nonce:button.dataset.nonce},function(r){
-            jQuery("div#mf2tk-shortcode-tester div#mf2tk-shortcode-tester-area-result textarea").val(r.trim());
+        jQuery.post(ajaxurl,{action:'tpcti_eval_post_content',post_id:post_id,post_content:source,prettify:prettify,nonce:button.dataset.nonce},function(r){
+            jQuery("div#mf2tk-shortcode-tester div#mf2tk-shortcode-tester-area-result textarea").val(r);
         });
     });
     // "Shortcode Tester" show both source and result button

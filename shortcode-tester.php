@@ -44,26 +44,29 @@ namespace mc_shortcode_tester {
                 if ( !wp_verify_nonce( $_REQUEST[ 'nonce' ], 'sct_ix-shortcode_tester_nonce' ) ) {
                     wp_nonce_ays( '' );
                 }
+                error_log( 'ACTION:wp_ajax_tpcti_eval_post_content():$_REQUEST=' . print_r( $_REQUEST, true ) );
                 $save_post = $post;
                 $post = get_post( $_REQUEST[ 'post_id' ] );
                 $html = do_shortcode( stripslashes( $_REQUEST[ 'post_content' ] ) );
-                #$html = str_replace( ' ', '#', $html );
-                #$html = str_replace( "\t", 'X', $html );
-                $html = preg_replace( '#>\s+<#', '><', $html );
-                #echo $html;
-                #$post = $save_post;
-                #die;
-                $dom = new \DOMDocument( );
-                $dom->preserveWhiteSpace = FALSE;
-                $dom->loadHTML( $html );
-                $dom->normalizeDocument( );
-                $dom->formatOutput = TRUE;
-                # saveHTML( ) doesn't format but saveXML( ) does. Why? see http://stackoverflow.com/questions/768215/php-pretty-print-html-not-tidy
-                $html = $dom->saveXML( $dom->documentElement );
-                # remove the <html> and <body> elements that were added by saveHTML( )
-                $html = preg_replace( [ '#^.*<body>\r?\n#s', '#</body>.*$#s' ], '', $html );
-                #$html = str_replace( ' ', '#', $html );
-                #$html = str_replace( "\t", 'X', $html );
+                if ( !empty( $_REQUEST[ 'prettify' ] ) && $_REQUEST[ 'prettify' ] === 'true' ) {
+                    #$html = str_replace( ' ', '#', $html );
+                    #$html = str_replace( "\t", 'X', $html );
+                    $html = preg_replace( '#>\s+<#', '><', $html );
+                    #echo $html;
+                    #$post = $save_post;
+                    #die;
+                    $dom = new \DOMDocument( );
+                    $dom->preserveWhiteSpace = FALSE;
+                    $dom->loadHTML( $html );
+                    $dom->normalizeDocument( );
+                    $dom->formatOutput = TRUE;
+                    # saveHTML( ) doesn't format but saveXML( ) does. Why? see http://stackoverflow.com/questions/768215/php-pretty-print-html-not-tidy
+                    $html = $dom->saveXML( $dom->documentElement );
+                    # remove the <html> and <body> elements that were added by saveHTML( )
+                    $html = preg_replace( [ '#^.*<body>\r?\n#s', '#</body>.*$#s' ], '', $html );
+                    #$html = str_replace( ' ', '#', $html );
+                    #$html = str_replace( "\t", 'X', $html );
+                }
                 echo $html;
                 $post = $save_post;
                 die;
@@ -102,6 +105,7 @@ namespace mc_shortcode_tester {
             Enter HTML and WordPress shortcodes in the Source text area.<br />
             Click the Evaluate button to display the generated HTML from WordPress shortcode processing in the Result text area.<br />
             <button id="mf2tk-shortcode-tester-evaluate" class="mf2tk-shortcode-tester-button">Evaluate</button>
+            <button id="mf2tk-shortcode-tester-evaluate-and-prettify" class="mf2tk-shortcode-tester-button">Evaluate & Prettify</button>
             <button id="mf2tk-shortcode-tester-show-source" class="mf2tk-shortcode-tester-button">Show Source Only</button>
             <button id="mf2tk-shortcode-tester-show-result" class="mf2tk-shortcode-tester-button">Show Result Only</button>
             <button id="mf2tk-shortcode-tester-show-both" class="mf2tk-shortcode-tester-button">Show Both</button>
