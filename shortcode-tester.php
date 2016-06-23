@@ -47,14 +47,23 @@ namespace mc_shortcode_tester {
                 $save_post = $post;
                 $post = get_post( $_REQUEST[ 'post_id' ] );
                 $html = do_shortcode( stripslashes( $_REQUEST[ 'post_content' ] ) );
+                #$html = str_replace( ' ', '#', $html );
+                #$html = str_replace( "\t", 'X', $html );
+                $html = preg_replace( '#>\s+<#', '><', $html );
+                #echo $html;
+                #$post = $save_post;
+                #die;
                 $dom = new \DOMDocument( );
                 $dom->preserveWhiteSpace = FALSE;
                 $dom->loadHTML( $html );
+                $dom->normalizeDocument( );
                 $dom->formatOutput = TRUE;
                 # saveHTML( ) doesn't format but saveXML( ) does. Why? see http://stackoverflow.com/questions/768215/php-pretty-print-html-not-tidy
                 $html = $dom->saveXML( );
                 # remove the <html> and <body> elements that were added by saveHTML( )
                 $html = preg_replace( [ '#^.*<body>\r?\n#s', '#</body>.*$#s' ], '', $html );
+                #$html = str_replace( ' ', '#', $html );
+                #$html = str_replace( "\t", 'X', $html );
                 echo $html;
                 $post = $save_post;
                 die;
