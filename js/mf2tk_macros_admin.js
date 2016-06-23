@@ -26,7 +26,7 @@ jQuery(document).ready(function(){
     });
     // "Shortcode Tester" show both source and result button
     divShortcode.find("button#mf2tk-shortcode-tester-show-both").click(function(){
-        divShortcode.find("div.mf2tk-shortcode-tester-half")
+        divShortcode.find("div.sct_ix-shortcode_tester_half")
             .css({display:"block",width:"50%",padding:"0",margin:"0",float:"left"})
     });
     // "Shortcode Tester" show source only button

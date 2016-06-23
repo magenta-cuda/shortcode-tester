@@ -98,26 +98,30 @@ namespace mc_shortcode_tester {
 <!-- start shortcode tester -->
 <div id="sct_ix-popup_margin" style="display:none;"></div>
 <div id="mf2tk-shortcode-tester" class="sct_ix-popup" style="display:none;">
-    <h3>Shortcode Tester</h3>
-    <button id="button-mf2tk-shortcode-tester-close">X</button>
-    <div style="padding:0;margin:0;clear:both;">
-        <div style="padding:0px 20px;margin:0;">
-            Enter HTML and WordPress shortcodes in the Source text area.<br />
-            Click the Evaluate button to display the generated HTML from WordPress shortcode processing in the Result text area.<br />
-            <button id="mf2tk-shortcode-tester-evaluate" class="mf2tk-shortcode-tester-button">Evaluate</button>
-            <button id="mf2tk-shortcode-tester-evaluate-and-prettify" class="mf2tk-shortcode-tester-button">Evaluate & Prettify</button>
-            <button id="mf2tk-shortcode-tester-show-source" class="mf2tk-shortcode-tester-button">Show Source Only</button>
-            <button id="mf2tk-shortcode-tester-show-result" class="mf2tk-shortcode-tester-button">Show Result Only</button>
-            <button id="mf2tk-shortcode-tester-show-both" class="mf2tk-shortcode-tester-button">Show Both</button>
-        </div>
-        <div class="mf2tk-shortcode-tester-half">
-            <div id="mf2tk-shortcode-tester-area-source" class="mf2tk-shortcode-tester-area">
+    <div class="sct_ix-heading">
+        <h3>Shortcode Tester</h3>
+        <button id="button-mf2tk-shortcode-tester-close">X</button>
+    </div>
+    <div class="sct_ix-instructions">
+        Enter HTML and WordPress shortcodes in the Source text area.<br />
+        Click the Evaluate button to display the generated HTML from WordPress shortcode processing in the Result text area.
+    </div>
+    <div class="sct_ix-button_bar">
+        <button id="mf2tk-shortcode-tester-evaluate" class="mf2tk-shortcode-tester-button">Evaluate</button>
+        <button id="mf2tk-shortcode-tester-evaluate-and-prettify" class="mf2tk-shortcode-tester-button">Evaluate & Prettify</button>
+        <button id="mf2tk-shortcode-tester-show-source" class="mf2tk-shortcode-tester-button">Show Source Only</button>
+        <button id="mf2tk-shortcode-tester-show-result" class="mf2tk-shortcode-tester-button">Show Result Only</button>
+        <button id="mf2tk-shortcode-tester-show-both" class="mf2tk-shortcode-tester-button">Show Both</button>
+    </div>
+    <div class="sct_ix-shortcode_tester_input_output">
+        <div class="sct_ix-shortcode_tester_half">
+            <div id="mf2tk-shortcode-tester-area-source" class="sct_ix-shortcode_tester_area">
                 <h3>Source</h3>
                 <textarea rows="12"></textarea>
             </div>
         </div>
-        <div class="mf2tk-shortcode-tester-half">
-            <div  id="mf2tk-shortcode-tester-area-result" class="mf2tk-shortcode-tester-area">
+        <div class="sct_ix-shortcode_tester_half">
+            <div  id="mf2tk-shortcode-tester-area-result" class="sct_ix-shortcode_tester_area">
                 <h3>Result</h3>
                 <textarea rows="12" readonly></textarea>
             </div>
