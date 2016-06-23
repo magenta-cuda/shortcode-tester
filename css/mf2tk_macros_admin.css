@@ -32,7 +32,10 @@ button#button-mf2tk-shortcode-tester-close {
   float: right;
   margin: 6px 6px 0 0; }
 button.mf2tk-shortcode-tester-button {
-  margin: 5px 5px 5px 0; }
+  width: 15em;
+  border: 2px solid black;
+  border-radius: 7px;
+  margin: 5px 5px 15px 0; }
 
 div.mf2tk-shortcode-tester-half {
   width: 50%;
@@ -51,16 +54,16 @@ div#mf2tk-shortcode-tester-area-result {
   border: 2px solid black;
   margin-left: 2%;
   margin-right: 4%; }
-div.mf2tk-shortcode-tester-area textarea {
-  padding: 10px;
-  margin-top: 5px; }
 div.mf2tk-shortcode-tester-area h3 {
   padding: 0 30px;
   margin: 0; }
 div.mf2tk-shortcode-tester-area textarea {
   display: block;
   width: 99%;
+  padding: 10px;
+  margin-top: 5px;
   margin-left: auto;
-  margin-right: auto; }
+  margin-right: auto;
+  font-family: monospace; }
 
 /*# sourceMappingURL=mf2tk_macros_admin.css.map */

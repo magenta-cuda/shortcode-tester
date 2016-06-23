@@ -59,7 +59,7 @@ namespace mc_shortcode_tester {
                 $dom->normalizeDocument( );
                 $dom->formatOutput = TRUE;
                 # saveHTML( ) doesn't format but saveXML( ) does. Why? see http://stackoverflow.com/questions/768215/php-pretty-print-html-not-tidy
-                $html = $dom->saveXML( );
+                $html = $dom->saveXML( $dom->documentElement );
                 # remove the <html> and <body> elements that were added by saveHTML( )
                 $html = preg_replace( [ '#^.*<body>\r?\n#s', '#</body>.*$#s' ], '', $html );
                 #$html = str_replace( ' ', '#', $html );
