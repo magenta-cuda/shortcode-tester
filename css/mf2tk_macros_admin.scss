@@ -1,5 +1,7 @@
 /* Shortcode Tester */
 
+$main_background_color: #888;
+$light_background_color: #ccc;
 $io-area-margin: 2%;
 
 div#sct_ix-popup_margin {
@@ -54,19 +56,25 @@ div.sct_ix-popup {
     }
 
     div.sct_ix-button_bar {
-        height: 10%;
+        height: 8vh;
+        border:2vh solid $main_background_color;
+        padding: 0 0 0 2vw;
         margin: 0;
+        background-color: $main_background_color;
         button.mf2tk-shortcode-tester-button {
-            width: 15em;
+            width: 12em;
+            height: 4vh;
             border: 2px solid black;
             border-radius: 7px;
-            margin: 5px 5px 15px 0;
+            margin: 0 2em 0 0;
+            font-size: 2vh;
         }
     }
 
     div.sct_ix-shortcode_tester_input_output {
         height: 70%;
         margin: 0;
+        background-color: $main_background_color;
         div.sct_ix-shortcode_tester_half {
             width: 50%;
             height: 96%;
@@ -78,7 +86,7 @@ div.sct_ix-popup {
                 height: 100%;
                 padding: 0;
                 margin: 0;
-                border: 2px solid black;
+                border: 3px solid black;
                 &#mf2tk-shortcode-tester-area-source {
                     margin-left: 2 * $io_area_margin;
                     margin-right: $io_area_margin;
@@ -88,9 +96,12 @@ div.sct_ix-popup {
                     margin-right: 2 * $io_area_margin;
                 }
                 h3 {
-                    height: 10%;
-                    padding: 0 30px;
+                    height: 3vh;
+                    padding: 0 0 0 1vw;
                     margin: 0;
+                    background-color: $light_background_color;
+                    border-bottom: 1px solid black;
+                    font-size: 2vh;
                 }
                 textarea {
                   display: block;
