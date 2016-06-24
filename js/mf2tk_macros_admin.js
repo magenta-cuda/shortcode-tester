@@ -27,21 +27,30 @@ jQuery(document).ready(function(){
     // "Shortcode Tester" show both source and result button
     divShortcode.find("button#mf2tk-shortcode-tester-show-both").click(function(){
         divShortcode.find("div.sct_ix-shortcode_tester_half").removeClass("sct_ix-this_half_only").show();
+        divShortcode.find("button#mf2tk-shortcode-tester-show-source,button#mf2tk-shortcode-tester-show-result").prop("disabled",false);
+        jQuery(this).prop("disabled",true);
     });
     // "Shortcode Tester" show source only button
     divShortcode.find("button#mf2tk-shortcode-tester-show-source").click(function(){
         divShortcode.find("div#mf2tk-shortcode-tester-area-result").parent().removeClass("sct_ix-this_half_only").hide();
         divShortcode.find("div#mf2tk-shortcode-tester-area-source").parent().addClass("sct_ix-this_half_only").show();
+        divShortcode.find("button#mf2tk-shortcode-tester-show-both,button#mf2tk-shortcode-tester-show-result").prop("disabled",false);
+        jQuery(this).prop("disabled",true);
     });
     // "Shortcode Tester" show result only button
     divShortcode.find("button#mf2tk-shortcode-tester-show-result").click(function(){
         divShortcode.find("div#mf2tk-shortcode-tester-area-source").parent().removeClass("sct_ix-this_half_only").hide();
         divShortcode.find("div#mf2tk-shortcode-tester-area-result").parent().addClass("sct_ix-this_half_only").show();
+        divShortcode.find("button#mf2tk-shortcode-tester-show-both,button#mf2tk-shortcode-tester-show-source").prop("disabled",false);
+        jQuery(this).prop("disabled",true);
     });
     // wire up the "Shortcode Tester" button
     jQuery("button#sct_ix-shortcode-tester").click(function(){
+        divShortcode.find("button#mf2tk-shortcode-tester-show-both").prop("disabled",true);
+        divShortcode.find("button#mf2tk-shortcode-tester-show-source,button#mf2tk-shortcode-tester-show-result").prop("disabled",false);
         divShortcode.find("div#mf2tk-shortcode-tester-area-source textarea").val("");
         divShortcode.find("div#mf2tk-shortcode-tester-area-result textarea").val("");
+        divShortcode.find("div.sct_ix-shortcode_tester_half").removeClass("sct_ix-this_half_only").show();
         divPopupOuter.show();
         divShortcode.show();
     });

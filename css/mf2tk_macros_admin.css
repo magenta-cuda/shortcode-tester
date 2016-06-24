@@ -55,6 +55,8 @@ div.sct_ix-popup {
       border-radius: 7px;
       margin: 0 2em 0 0;
       font-size: 2vh; }
+      div.sct_ix-popup div.sct_ix-button_bar button.mf2tk-shortcode-tester-button:enabled:hover {
+        background-color: white; }
   div.sct_ix-popup div.sct_ix-shortcode_tester_input_output {
     height: 69vh;
     margin: 0;

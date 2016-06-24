@@ -75,6 +75,9 @@ div.sct_ix-popup {
             border-radius: 7px;
             margin: 0 2em 0 0;
             font-size: 2vh;
+            &:enabled:hover {
+                background-color: white;
+            }
         }
     }
 
