@@ -1,5 +1,10 @@
 /* Shortcode Tester */
 
+$popup_margin_height: 5vh;
+$heading_height: 5vh;
+$instructions_height: 8vh;
+$button_bar_height: 8vh;
+
 $main_background_color: #888;
 $light_background_color: #ccc;
 $io-area-margin: 2%;
@@ -27,7 +32,7 @@ div.sct_ix-popup {
     border-radius: 7px;
     background-color: white;
     width: 94%;
-    height: 90%;
+    height: 100vh - 2 * $popup_margin_height;
     overflow: auto;
     display: none;
 
@@ -36,7 +41,7 @@ div.sct_ix-popup {
     }
 
     div.sct_ix-heading {
-        height: 10%;
+        height: $heading_height;
         margin: 0;
         h3 {
             padding: 5px 20px;
@@ -51,12 +56,14 @@ div.sct_ix-popup {
 
     div.sct_ix-instructions {
         clear: both;
-        height: 10%;
+        height: $instructions_height;
+        padding-left: 4vw;
         margin: 0;
+        font-size: 1.75vh;
     }
 
     div.sct_ix-button_bar {
-        height: 8vh;
+        height: $button_bar_height;
         border:2vh solid $main_background_color;
         padding: 0 0 0 2vw;
         margin: 0;
@@ -72,12 +79,12 @@ div.sct_ix-popup {
     }
 
     div.sct_ix-shortcode_tester_input_output {
-        height: 70%;
+        height: 100vh - ( 2 * $popup_margin_height + $heading_height + $instructions_height + $button_bar_height );
         margin: 0;
         background-color: $main_background_color;
         div.sct_ix-shortcode_tester_half {
             width: 50%;
-            height: 96%;
+            height: 100%;
             padding: 0;
             margin: 0;
             float: left;
@@ -95,7 +102,7 @@ div.sct_ix-popup {
             }
             div.sct_ix-shortcode_tester_area {
                 width: 100% - 3 * $io_area_margin;
-                height: 100%;
+                height: 96%;
                 padding: 0;
                 margin: 0;
                 border: 3px solid black;
@@ -108,17 +115,19 @@ div.sct_ix-popup {
                     margin-right: 2 * $io_area_margin;
                 }
                 h3 {
-                    height: 3vh;
-                    padding: 0 0 0 1vw;
+                    height: 5%;
+                    padding: 0 0 0 4vw;
                     margin: 0;
                     background-color: $light_background_color;
                     border-bottom: 1px solid black;
+                    font-weight: bold;
                     font-size: 2vh;
+                    text-align: left;
                 }
                 textarea {
                   display: block;
                   width: 100%;
-                  height: 90%;
+                  height: 95%;
                   padding: 10px;
                   margin: 0 auto 0 auto;
                   font-family: monospace;
