@@ -63,6 +63,14 @@ div.sct_ix-popup {
       padding: 0;
       margin: 0;
       float: left; }
+      div.sct_ix-popup div.sct_ix-shortcode_tester_input_output div.sct_ix-shortcode_tester_half.sct_ix-this_half_only {
+        width: 96%;
+        float: none;
+        margin-left: auto;
+        margin-right: auto; }
+        div.sct_ix-popup div.sct_ix-shortcode_tester_input_output div.sct_ix-shortcode_tester_half.sct_ix-this_half_only div.sct_ix-shortcode_tester_area#mf2tk-shortcode-tester-area-source, div.sct_ix-popup div.sct_ix-shortcode_tester_input_output div.sct_ix-shortcode_tester_half.sct_ix-this_half_only div.sct_ix-shortcode_tester_area#mf2tk-shortcode-tester-area-result {
+          width: 100%;
+          margin: 0; }
       div.sct_ix-popup div.sct_ix-shortcode_tester_input_output div.sct_ix-shortcode_tester_half div.sct_ix-shortcode_tester_area {
         width: 94%;
         height: 100%;

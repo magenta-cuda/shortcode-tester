@@ -26,20 +26,17 @@ jQuery(document).ready(function(){
     });
     // "Shortcode Tester" show both source and result button
     divShortcode.find("button#mf2tk-shortcode-tester-show-both").click(function(){
-        divShortcode.find("div.sct_ix-shortcode_tester_half")
-            .css({display:"block",width:"50%",padding:"0",margin:"0",float:"left"})
+        divShortcode.find("div.sct_ix-shortcode_tester_half").removeClass("sct_ix-this_half_only").show();
     });
     // "Shortcode Tester" show source only button
     divShortcode.find("button#mf2tk-shortcode-tester-show-source").click(function(){
-        divShortcode.find("div#mf2tk-shortcode-tester-area-source").parent()
-            .css({display:"block",width:"99%",float:"none","margin-left":"auto","margin-right":"auto"});
-        divShortcode.find("div#mf2tk-shortcode-tester-area-result").parent().css("display","none");
+        divShortcode.find("div#mf2tk-shortcode-tester-area-result").parent().removeClass("sct_ix-this_half_only").hide();
+        divShortcode.find("div#mf2tk-shortcode-tester-area-source").parent().addClass("sct_ix-this_half_only").show();
     });
     // "Shortcode Tester" show result only button
     divShortcode.find("button#mf2tk-shortcode-tester-show-result").click(function(){
-        divShortcode.find("div#mf2tk-shortcode-tester-area-source").parent().css("display","none");
-        divShortcode.find("div#mf2tk-shortcode-tester-area-result").parent()
-            .css({display:"block",width:"99%",float:"none","margin-left":"auto","margin-right":"auto"});
+        divShortcode.find("div#mf2tk-shortcode-tester-area-source").parent().removeClass("sct_ix-this_half_only").hide();
+        divShortcode.find("div#mf2tk-shortcode-tester-area-result").parent().addClass("sct_ix-this_half_only").show();
     });
     // wire up the "Shortcode Tester" button
     jQuery("button#sct_ix-shortcode-tester").click(function(){
