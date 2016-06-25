@@ -58,6 +58,7 @@ div.sct_ix-popup {
     div.sct_ix-heading {
         height: $heading_height;
         margin: 0;
+        overflow: hidden;
         h3 {
             padding: 5px 20px;
             margin: 0;
@@ -66,7 +67,7 @@ div.sct_ix-popup {
         button#button-mf2tk-shortcode-tester-close {
             @include button_specs;
             float: right;
-            margin: 8px 8px 0 0;
+            margin: 6px 6px 0 0;
         }
     }
 
@@ -76,6 +77,7 @@ div.sct_ix-popup {
         padding-left: 4vw;
         margin: 0;
         font-size: 1.75vh;
+        overflow: hidden;
     }
 
     div.sct_ix-button_bar {
@@ -84,6 +86,7 @@ div.sct_ix-popup {
         padding: 0 0 0 2vw;
         margin: 0;
         background-color: $main_background_color;
+        overflow: hidden;
         button.mf2tk-shortcode-tester-button {
             @include button_specs;
             width: 11em;

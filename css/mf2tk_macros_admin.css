@@ -28,7 +28,8 @@ div.sct_ix-popup {
     box-sizing: border-box; }
   div.sct_ix-popup div.sct_ix-heading {
     height: 5vh;
-    margin: 0; }
+    margin: 0;
+    overflow: hidden; }
     div.sct_ix-popup div.sct_ix-heading h3 {
       padding: 5px 20px;
       margin: 0;
@@ -41,7 +42,7 @@ div.sct_ix-popup {
       color: black;
       font-size: 2vh;
       float: right;
-      margin: 8px 8px 0 0; }
+      margin: 6px 6px 0 0; }
       div.sct_ix-popup div.sct_ix-heading button#button-mf2tk-shortcode-tester-close:enabled:hover {
         background-color: white; }
       div.sct_ix-popup div.sct_ix-heading button#button-mf2tk-shortcode-tester-close:disabled {
@@ -51,13 +52,15 @@ div.sct_ix-popup {
     height: 8vh;
     padding-left: 4vw;
     margin: 0;
-    font-size: 1.75vh; }
+    font-size: 1.75vh;
+    overflow: hidden; }
   div.sct_ix-popup div.sct_ix-button_bar {
     height: 8vh;
     border: 2vh solid #eee;
     padding: 0 0 0 2vw;
     margin: 0;
-    background-color: #eee; }
+    background-color: #eee;
+    overflow: hidden; }
     div.sct_ix-popup div.sct_ix-button_bar button.mf2tk-shortcode-tester-button {
       height: 4vh;
       border: 2px solid black;
