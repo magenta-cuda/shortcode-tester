@@ -44,7 +44,6 @@ namespace mc_shortcode_tester {
                 if ( !wp_verify_nonce( $_REQUEST[ 'nonce' ], 'sct_ix-shortcode_tester_nonce' ) ) {
                     wp_nonce_ays( '' );
                 }
-                error_log( 'ACTION:wp_ajax_tpcti_eval_post_content():$_REQUEST=' . print_r( $_REQUEST, true ) );
                 $save_post = $post;
                 $post = get_post( $_REQUEST[ 'post_id' ] );
                 $html = do_shortcode( stripslashes( $_REQUEST[ 'post_content' ] ) );
