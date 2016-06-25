@@ -5,9 +5,24 @@ $heading_height: 5vh;
 $instructions_height: 8vh;
 $button_bar_height: 8vh;
 
-$main_background_color: #888;
-$light_background_color: #ccc;
+$main_background_color: #eee;
+$light_background_color: #888;
 $io-area-margin: 2%;
+
+@mixin button_specs {
+    height: 4vh;
+    border: 2px solid black;
+    border-radius: 7px;
+    background-color:#aaa;
+    color: black;
+    font-size: 2vh;
+    &:enabled:hover {
+        background-color: white;
+    }
+    &:disabled {
+        color: #777;
+    }
+}
 
 div#sct_ix-popup_margin {
     position: fixed;
@@ -49,8 +64,9 @@ div.sct_ix-popup {
             float: left;
         }
         button#button-mf2tk-shortcode-tester-close {
+            @include button_specs;
             float: right;
-            margin: 6px 6px 0 0;
+            margin: 8px 8px 0 0;
         }
     }
 
@@ -69,15 +85,9 @@ div.sct_ix-popup {
         margin: 0;
         background-color: $main_background_color;
         button.mf2tk-shortcode-tester-button {
-            width: 12em;
-            height: 4vh;
-            border: 2px solid black;
-            border-radius: 7px;
-            margin: 0 2em 0 0;
-            font-size: 2vh;
-            &:enabled:hover {
-                background-color: white;
-            }
+            @include button_specs;
+            width: 11em;
+            margin: 0 1em 0 0;
         }
     }
 
@@ -119,8 +129,9 @@ div.sct_ix-popup {
                 }
                 h3 {
                     height: 5%;
-                    padding: 0 0 0 4vw;
+                    padding: 0 0 0 2vw;
                     margin: 0;
+                    color: white;
                     background-color: $light_background_color;
                     border-bottom: 1px solid black;
                     font-weight: bold;

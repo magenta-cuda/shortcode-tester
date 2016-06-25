@@ -34,8 +34,18 @@ div.sct_ix-popup {
       margin: 0;
       float: left; }
     div.sct_ix-popup div.sct_ix-heading button#button-mf2tk-shortcode-tester-close {
+      height: 4vh;
+      border: 2px solid black;
+      border-radius: 7px;
+      background-color: #aaa;
+      color: black;
+      font-size: 2vh;
       float: right;
-      margin: 6px 6px 0 0; }
+      margin: 8px 8px 0 0; }
+      div.sct_ix-popup div.sct_ix-heading button#button-mf2tk-shortcode-tester-close:enabled:hover {
+        background-color: white; }
+      div.sct_ix-popup div.sct_ix-heading button#button-mf2tk-shortcode-tester-close:disabled {
+        color: #777; }
   div.sct_ix-popup div.sct_ix-instructions {
     clear: both;
     height: 8vh;
@@ -44,23 +54,27 @@ div.sct_ix-popup {
     font-size: 1.75vh; }
   div.sct_ix-popup div.sct_ix-button_bar {
     height: 8vh;
-    border: 2vh solid #888;
+    border: 2vh solid #eee;
     padding: 0 0 0 2vw;
     margin: 0;
-    background-color: #888; }
+    background-color: #eee; }
     div.sct_ix-popup div.sct_ix-button_bar button.mf2tk-shortcode-tester-button {
-      width: 12em;
       height: 4vh;
       border: 2px solid black;
       border-radius: 7px;
-      margin: 0 2em 0 0;
-      font-size: 2vh; }
+      background-color: #aaa;
+      color: black;
+      font-size: 2vh;
+      width: 11em;
+      margin: 0 1em 0 0; }
       div.sct_ix-popup div.sct_ix-button_bar button.mf2tk-shortcode-tester-button:enabled:hover {
         background-color: white; }
+      div.sct_ix-popup div.sct_ix-button_bar button.mf2tk-shortcode-tester-button:disabled {
+        color: #777; }
   div.sct_ix-popup div.sct_ix-shortcode_tester_input_output {
     height: 69vh;
     margin: 0;
-    background-color: #888; }
+    background-color: #eee; }
     div.sct_ix-popup div.sct_ix-shortcode_tester_input_output div.sct_ix-shortcode_tester_half {
       width: 50%;
       height: 100%;
@@ -89,9 +103,10 @@ div.sct_ix-popup {
           margin-right: 4%; }
         div.sct_ix-popup div.sct_ix-shortcode_tester_input_output div.sct_ix-shortcode_tester_half div.sct_ix-shortcode_tester_area h3 {
           height: 5%;
-          padding: 0 0 0 4vw;
+          padding: 0 0 0 2vw;
           margin: 0;
-          background-color: #ccc;
+          color: white;
+          background-color: #888;
           border-bottom: 1px solid black;
           font-weight: bold;
           font-size: 2vh;
