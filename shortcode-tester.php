@@ -54,6 +54,8 @@ namespace mc_shortcode_tester {
                     #echo $html;
                     #$post = $save_post;
                     #die;
+                    # DOMDocument doesn't understand some HTML5 tags, e.g. figure so
+                    libxml_use_internal_errors( TRUE );
                     $dom = new \DOMDocument( );
                     $dom->preserveWhiteSpace = FALSE;
                     $dom->loadHTML( $html );
