@@ -35,17 +35,21 @@ namespace mc_shortcode_tester {
         
     $construct = function( ) {
 
-        if ( is_admin( ) ) {
+        if ( !is_admin( ) ) {
             
-            # AJAX action 'wp_ajax_tpcti_eval_post_content' handles evaluation of HTML fragments from post content editor shortcode tester
+            # a 'template_redirect' handles evaluation of HTML fragments from post content editor shortcode tester
             
-            add_action( 'wp_ajax_tpcti_eval_post_content', function( ) {
+            add_action( 'template_redirect', function( ) {
+                if ( empty( $_GET[ 'mc-sct' ] ) || $_GET[ 'mc-sct' ] !== 'tpcti_eval_post_content' ) {
+                    return;
+                }
                 global $post;
+                error_log( '$_REQUEST=' . print_r( $_REQUEST, true ) );
+                error_log( '$post=' . print_r( $post, true ) );
                 if ( !wp_verify_nonce( $_REQUEST[ 'nonce' ], 'sct_ix-shortcode_tester_nonce' ) ) {
                     wp_nonce_ays( '' );
                 }
-                $save_post = $post;
-                $post = get_post( $_REQUEST[ 'post_id' ] );
+                setup_postdata( $post );
                 $html = do_shortcode( stripslashes( $_REQUEST[ 'post_content' ] ) );
                 if ( !empty( $_REQUEST[ 'prettify' ] ) && $_REQUEST[ 'prettify' ] === 'true' ) {
                     #$html = str_replace( ' ', '#', $html );
@@ -69,10 +73,11 @@ namespace mc_shortcode_tester {
                     #$html = str_replace( "\t", 'X', $html );
                 }
                 echo $html;
-                $post = $save_post;
                 die;
-            } );   # add_action( 'wp_ajax_tpcti_eval_post_content', function( ) {
-         
+            } );   # add_action( 'template_redirect', function( ) {
+
+        } else {
+       
             # things to do only on post.php and post-new.php admin pages
 
             $post_editor_actions = function( ) {
