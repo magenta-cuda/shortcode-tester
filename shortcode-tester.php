@@ -38,25 +38,24 @@ namespace mc_shortcode_tester {
         if ( !is_admin( ) ) {
             
             # a 'template_redirect' handles evaluation of HTML fragments from post content editor shortcode tester
+            # using a 'template_redirect' insures we have the correct context for evaluating shortcodes
             
             add_action( 'template_redirect', function( ) {
+                global $post;
                 if ( empty( $_GET[ 'mc-sct' ] ) || $_GET[ 'mc-sct' ] !== 'tpcti_eval_post_content' ) {
                     return;
                 }
-                global $post;
-                error_log( '$_REQUEST=' . print_r( $_REQUEST, true ) );
-                error_log( '$post=' . print_r( $post, true ) );
                 if ( !wp_verify_nonce( $_REQUEST[ 'nonce' ], 'sct_ix-shortcode_tester_nonce' ) ) {
                     wp_nonce_ays( '' );
                 }
                 setup_postdata( $post );
+                # instead of showing the post we evaluate the sent content in the context of the post
                 $html = do_shortcode( stripslashes( $_REQUEST[ 'post_content' ] ) );
                 if ( !empty( $_REQUEST[ 'prettify' ] ) && $_REQUEST[ 'prettify' ] === 'true' ) {
                     #$html = str_replace( ' ', '#', $html );
                     #$html = str_replace( "\t", 'X', $html );
                     $html = preg_replace( '#>\s+<#', '><', $html );
                     #echo $html;
-                    #$post = $save_post;
                     #die;
                     # DOMDocument doesn't understand some HTML5 tags, e.g. figure so
                     libxml_use_internal_errors( TRUE );
