@@ -136,6 +136,10 @@ namespace mc_shortcode_tester {
         </div>
     </div>
 </div>
+<!-- for the tooltip use the same classes as React uses for its tooltips -->
+<div class="components-popover components-tooltip is-bottom is-center sct_ix-shortcode_tester_tooltip" style="display:none;">
+    <div class="components-popover__content">Shortcode Tester</div>
+</div>
 <!-- end shortcode tester -->
 <?php
                 };   # $shortcode_tester = function( ) {
