@@ -93,7 +93,7 @@ jQuery(document).ready(function(){
                             var tooltip=jQuery(".sct_ix-shortcode_tester_tooltip");
                             var style=tooltip[0].style;
                             style.left=(offset.left+target.outerWidth()/2)+"px";
-                            style.top=(offset.top+target.outerHeight())+"px";
+                            style.top=(offset.top+target.outerHeight()-8)+"px";
                             tooltip.show();
                         },
                         function(e){
