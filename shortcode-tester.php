@@ -157,6 +157,34 @@ namespace mc_shortcode_tester {
             
     };   # $construct = function( ) {
 
+    # $alt_template_redirect( ) will monitor template processing
+
+    $alt_template_redirect = function() {
+        add_action( 'get_header', function ( $name ) {
+        } );
+        add_action( 'wp_head', function( ) {
+        } );
+        add_action( 'wp_body_open' ) {
+        } );
+        add_filter( 'bloginfo', function( $output, $show ) {
+            return $output;
+        }, 10, 2 );
+        add_filter( 'has_nav_menu', function( $has_nav_menu, $location ) {
+            return $has_nav_menu;
+        }, 10, 2 );
+        foreach ( [ 'header_image' ] as $name ) {
+            add_filter( "theme_mod_{$name}", function( $default ) {
+                return $default;
+            } );
+        }
+        add_action( 'get_sidebar', function ( $name ) {
+        } );
+        add_action( 'get_footer', function ( $name ) {
+        } );
+        add_action( 'wp_footer' ), function( ) {
+        } );
+    }
+
     $construct( );
 }
 ?>
