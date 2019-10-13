@@ -161,10 +161,19 @@ namespace mc_shortcode_tester {
 
     $alt_template_redirect = function() {
         add_action( 'get_header', function ( $name ) {
+            echo "<!-- ACTION:get_header -->\n";
         } );
         add_action( 'wp_head', function( ) {
+            echo "<!-- ACTION:wp_head -->\n";
         } );
-        add_action( 'wp_body_open' ) {
+        add_action( 'the_post', function( &$post, &$query ) {
+            echo "<!-- ACTION:the_post -->\n";
+        }, 10, 2 );
+        add_action( 'loop_end', function( &$query ) {
+            echo "<!-- ACTION:loop_end -->\n";
+        }, 10, 1 );
+        add_action( 'wp_body_open', function( ) {
+            echo "<!-- ACTION:wp_body_open -->\n";
         } );
         add_filter( 'bloginfo', function( $output, $show ) {
             return $output;
@@ -178,13 +187,23 @@ namespace mc_shortcode_tester {
             } );
         }
         add_action( 'get_sidebar', function ( $name ) {
+            echo "<!-- ACTION:get_sidebar -->\n";
         } );
         add_action( 'get_footer', function ( $name ) {
+            echo "<!-- ACTION:get_footer -->\n";
         } );
-        add_action( 'wp_footer' ), function( ) {
+        add_action( 'wp_footer', function( ) {
+            echo "<!-- ACTION:wp_footer -->\n";
         } );
-    }
+    };   # $alt_template_redirect = function() {
 
     $construct( );
-}
+
+    // TODO: run template processing monitor - experiment only remove!
+
+    add_action( 'template_redirect', function( ) use ( $alt_template_redirect ) {
+        $alt_template_redirect( );
+    } );
+
+}   # namespace mc_shortcode_tester {
 ?>
