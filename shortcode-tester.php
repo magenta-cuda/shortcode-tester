@@ -161,39 +161,41 @@ namespace mc_shortcode_tester {
 
     $alt_template_redirect = function() {
         add_action( 'get_header', function ( $name ) {
-            echo "<!-- ACTION:get_header -->\n";
+            echo "<!-- ##### ACTION:get_header -->\n";
         } );
         add_action( 'wp_head', function( ) {
-            echo "<!-- ACTION:wp_head -->\n";
+            echo "<!-- ##### ACTION:wp_head -->\n";
         } );
         add_action( 'the_post', function( &$post, &$query ) {
-            echo "<!-- ACTION:the_post -->\n";
+            echo "<!-- ##### ACTION:the_post -->\n";
         }, 10, 2 );
         add_action( 'loop_end', function( &$query ) {
-            echo "<!-- ACTION:loop_end -->\n";
+            echo "<!-- ##### ACTION:loop_end -->\n";
         }, 10, 1 );
         add_action( 'wp_body_open', function( ) {
-            echo "<!-- ACTION:wp_body_open -->\n";
+            echo "<!-- ##### ACTION:wp_body_open -->\n";
         } );
         add_filter( 'bloginfo', function( $output, $show ) {
+            echo "<!-- ##### FILTER:blog_info:[[{$output}]] -->\n";
             return $output;
         }, 10, 2 );
         add_filter( 'has_nav_menu', function( $has_nav_menu, $location ) {
             return $has_nav_menu;
         }, 10, 2 );
         foreach ( [ 'header_image' ] as $name ) {
-            add_filter( "theme_mod_{$name}", function( $default ) {
+            add_filter( "theme_mod_{$name}", function( $default ) use ( $name ) {
+                echo "<!-- ##### FILTER:theme_mod_{$name}:[[{$default}]] -->\n";
                 return $default;
             } );
         }
         add_action( 'get_sidebar', function ( $name ) {
-            echo "<!-- ACTION:get_sidebar -->\n";
+            echo "<!-- ##### ACTION:get_sidebar -->\n";
         } );
         add_action( 'get_footer', function ( $name ) {
-            echo "<!-- ACTION:get_footer -->\n";
+            echo "<!-- ##### ACTION:get_footer -->\n";
         } );
         add_action( 'wp_footer', function( ) {
-            echo "<!-- ACTION:wp_footer -->\n";
+            echo "<!-- ##### ACTION:wp_footer -->\n";
         } );
     };   # $alt_template_redirect = function() {
 
