@@ -1,8 +1,7 @@
 <?php
 
 namespace mc_html_parser {
-    function get_start_tag( $buffer, $offset ) {
-        $length = strlen( $buffer );
+    function get_start_tag( $buffer, $offset, $length ) {
         for ( ; $offset < $length; $offset++ ) {
             if ( $buffer[ $offset ] === '<' ) {
                 if ( $buffer[ $offset + 1 ] !== '/' && $buffer[ $offset + 1 ] !== '!' ) {
@@ -12,8 +11,7 @@ namespace mc_html_parser {
         }
         return FALSE;
     }
-    function get_name( $buffer, $offset ) {
-        $length = strlen( $buffer );
+    function get_name( $buffer, $offset, $length ) {
         for ( ; $offset < $length; $offset++ ) {
             if ( ! ctype_alpha( $buffer[ $offset ] ) ) {
                 return $offset - 1;
@@ -21,8 +19,7 @@ namespace mc_html_parser {
         }
         return $offset;
     }
-    function get_greater_than( $buffer, $offset ) {
-        $length = strlen( $buffer );
+    function get_greater_than( $buffer, $offset, $length ) {
         for ( ; $offset < $length; $offset++ ) {
             if ( $buffer[ $offset ] === '"' || $buffer[ $offset ] === '\'' ) {
                 $offset = strpos( $buffer, $buffer[ $offset ], $offset + 1 );
@@ -37,8 +34,7 @@ namespace mc_html_parser {
         }
         return FALSE;
     };
-    function get_end_tag( $buffer, $offset, $tag ) {
-        $length = strlen( $buffer );
+    function get_end_tag( $buffer, $offset, $tag, $length ) {
         for ( ; $offset < $length; $offset++ ) {
             if ( $buffer[ $offset ] === '<' ) {
                 if ( $buffer[ $offset + 1 ] === '/' ) {
@@ -49,10 +45,10 @@ namespace mc_html_parser {
                     }
                 } else if ( $buffer[ $offset + 1 ] !== '!' ) {
                     $prev_offset = $offset;
-                    $offset = get_name( $buffer, $offset + 1 );
+                    $offset = get_name( $buffer, $offset + 1, $length );
                     $inner_tag = substr( $buffer, $prev_offset + 1, $offset - $prev_offset ); 
-                    $offset = get_greater_than( $buffer, $offset + 1 );
-                    $offset = get_end_tag( $buffer, $offset + 1, $inner_tag );
+                    $offset = get_greater_than( $buffer, $offset + 1, $length );
+                    $offset = get_end_tag( $buffer, $offset + 1, $inner_tag, $length );
                     continue;
                 }
             }

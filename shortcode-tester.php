@@ -37,6 +37,8 @@ namespace mc_shortcode_tester {
         
     require_once( 'parse-functions.php' );
 
+    define( 'START_OF_FOOTER', '<!-- ##### ACTION:get_footer -->' );
+
     $construct = function( ) {
 
         if ( !is_admin( ) ) {
@@ -165,13 +167,14 @@ namespace mc_shortcode_tester {
 
     $handle_output_buffering = function( $buffer ) {
         error_log( 'handle_output_buffering():$buffer=' . "\n#####\n" . $buffer . "/n#####" );
-        $left_offset  = \mc_html_parser\get_start_tag( $buffer, 0 );
-        $right_offset = \mc_html_parser\get_name( $buffer, $left_offset + 1 );
+        $length       = strpos( $buffer, START_OF_FOOTER );
+        $left_offset  = \mc_html_parser\get_start_tag( $buffer, 0, $length );
+        $right_offset = \mc_html_parser\get_name( $buffer, $left_offset + 1, $length );
         $name         = substr( $buffer, $left_offset + 1, $right_offset - $left_offset );
         error_log( 'handle_output_buffering():$name=' . $name );
-        $offset       = \mc_html_parser\get_greater_than( $buffer, $right_offset + 1 );
+        $offset       = \mc_html_parser\get_greater_than( $buffer, $right_offset + 1, $length );
         error_log( 'handle_output_buffering():substr( $buffer, $offset + 1, 32 )=' . substr( $buffer, $offset + 1, 32 ) );
-        $offset       = \mc_html_parser\get_end_tag( $buffer, $offset + 1, $name );
+        $offset       = \mc_html_parser\get_end_tag( $buffer, $offset + 1, $name, $length );
         error_log( 'handle_output_buffering():substr( $buffer, $offset + 1, 32 )=' . substr( $buffer, $offset + 1, 32 ) );
         return $buffer;
     };
@@ -219,7 +222,7 @@ namespace mc_shortcode_tester {
             }
         } );
         add_action( 'get_footer', function ( $name ) use ( &$output_buffering_on, $handle_output_buffering ) {
-            echo "<!-- ##### ACTION:get_footer -->\n";
+            echo START_OF_FOOTER . "\n";
             if ( ! $output_buffering_on ) {
                 ob_start( function( $buffer ) use ( &$output_buffering_on, $handle_output_buffering ) {
                     if ( $output_buffering_on ) {
