@@ -31,8 +31,12 @@
     A Tiny Post Content Template Interpreter. However, since it is generally useful I have separated into its own plugin.
 */
 
+# http://localhost/tablepress-test/?mc-sct=tpcti_html_eval_post_content
+
 namespace mc_shortcode_tester {
         
+    require_once( 'parse-functions.php' );
+
     $construct = function( ) {
 
         if ( !is_admin( ) ) {
@@ -160,7 +164,15 @@ namespace mc_shortcode_tester {
     # $alt_template_redirect( ) will monitor template processing
 
     $handle_output_buffering = function( $buffer ) {
-        error_log( 'shutdown::$buffer=' . "\n#####\n" . $buffer . "/n#####" );
+        error_log( 'handle_output_buffering():$buffer=' . "\n#####\n" . $buffer . "/n#####" );
+        $left_offset  = \mc_html_parser\get_start_tag( $buffer, 0 );
+        $right_offset = \mc_html_parser\get_name( $buffer, $left_offset + 1 );
+        $name         = substr( $buffer, $left_offset + 1, $right_offset - $left_offset );
+        error_log( 'handle_output_buffering():$name=' . $name );
+        $offset       = \mc_html_parser\get_greater_than( $buffer, $right_offset + 1 );
+        error_log( 'handle_output_buffering():substr( $buffer, $offset + 1, 32 )=' . substr( $buffer, $offset + 1, 32 ) );
+        $offset       = \mc_html_parser\get_end_tag( $buffer, $offset + 1, $name );
+        error_log( 'handle_output_buffering():substr( $buffer, $offset + 1, 32 )=' . substr( $buffer, $offset + 1, 32 ) );
         return $buffer;
     };
     $alt_template_redirect = function( ) use ( $handle_output_buffering ) {

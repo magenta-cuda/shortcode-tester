@@ -1,10 +1,12 @@
 <?php
+
+namespace mc_html_parser {
     function get_start_tag( $buffer, $offset ) {
         $length = strlen( $buffer );
         for ( ; $offset < $length; $offset++ ) {
             if ( $buffer[ $offset ] === '<' ) {
-                if ( $buffer[ $offset + 1 ] !== '/' ) {
-                    return get_name( $buffer, $offset + 1 );
+                if ( $buffer[ $offset + 1 ] !== '/' && $buffer[ $offset + 1 ] !== '!' ) {
+                    return $offset;
                 }
             }
         }
@@ -45,7 +47,7 @@
                     } else {
                         return FALSE;
                     }
-                } else {
+                } else if ( $buffer[ $offset + 1 ] !== '!' ) {
                     $prev_offset = $offset;
                     $offset = get_name( $buffer, $offset + 1 );
                     $inner_tag = substr( $buffer, $prev_offset + 1, $offset - $prev_offset ); 
@@ -57,4 +59,5 @@
         }
         return FALSE;
     }
+}   # namespace mc_html_parser {
 ?>
