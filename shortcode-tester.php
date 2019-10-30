@@ -159,7 +159,11 @@ namespace mc_shortcode_tester {
 
     # $alt_template_redirect( ) will monitor template processing
 
-    $alt_template_redirect = function() {
+    $handle_output_buffering = function( $buffer ) {
+        error_log( 'shutdown::$buffer=' . "\n#####\n" . $buffer . "/n#####" );
+        return $buffer;
+    };
+    $alt_template_redirect = function( ) use ( $handle_output_buffering ) {
         add_action( 'get_header', function ( $name ) {
             echo "<!-- ##### ACTION:get_header -->\n";
         } );
@@ -188,14 +192,37 @@ namespace mc_shortcode_tester {
                 return $default;
             } );
         }
-        add_action( 'get_sidebar', function ( $name ) {
-            echo "<!-- ##### ACTION:get_sidebar -->\n";
+        $output_buffering_on = FALSE;
+        add_action( 'get_sidebar', function ( $name ) use ( &$output_buffering_on, $handle_output_buffering ) {
+            echo "<!-- ##### ACTION:get_sidebar $name -->\n";
+            if ( ! $output_buffering_on ) {
+                ob_start( function( $buffer ) use ( &$output_buffering_on, $handle_output_buffering ) {
+                    if ( $output_buffering_on ) {
+                        $output_buffering_on = FALSE;
+                        return $handle_output_buffering( $buffer );
+                    }
+                    return $buffer;
+                } );
+                $output_buffering_on = TRUE;
+            }
         } );
-        add_action( 'get_footer', function ( $name ) {
+        add_action( 'get_footer', function ( $name ) use ( &$output_buffering_on, $handle_output_buffering ) {
             echo "<!-- ##### ACTION:get_footer -->\n";
+            if ( ! $output_buffering_on ) {
+                ob_start( function( $buffer ) use ( &$output_buffering_on, $handle_output_buffering ) {
+                    if ( $output_buffering_on ) {
+                        $output_buffering_on = FALSE;
+                        return $handle_output_buffering( $buffer );
+                    }
+                    return $buffer;
+                } );
+                $output_buffering_on = TRUE;
+            }
         } );
         add_action( 'wp_footer', function( ) {
             echo "<!-- ##### ACTION:wp_footer -->\n";
+        } );
+        register_shutdown_function( function( ) use ( &$output_buffering_on ) {
         } );
     };   # $alt_template_redirect = function() {
 
@@ -203,9 +230,11 @@ namespace mc_shortcode_tester {
 
     // TODO: run template processing monitor - experiment only remove!
 
-    add_action( 'template_redirect', function( ) use ( $alt_template_redirect ) {
-        $alt_template_redirect( );
-    } );
+    if ( ! empty( $_GET[ 'mc-sct' ] ) && $_GET[ 'mc-sct' ] === 'tpcti_html_eval_post_content' ) {
+        add_action( 'template_redirect', function( ) use ( $alt_template_redirect ) {
+            $alt_template_redirect( );
+        } );
+    }
 
 }   # namespace mc_shortcode_tester {
 ?>
