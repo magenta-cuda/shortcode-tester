@@ -21,6 +21,8 @@ namespace mc_html_parser {
     }
     function get_greater_than( $buffer, $offset, $length ) {
         for ( ; $offset < $length; $offset++ ) {
+            # Attributes may have string values.
+            # Strings are dangerous as they may contain HTML tags so find the ending delimiter.
             if ( $buffer[ $offset ] === '"' || $buffer[ $offset ] === '\'' ) {
                 $offset = strpos( $buffer, $buffer[ $offset ], $offset + 1 );
                 if ( $offset === FALSE ) {
@@ -35,6 +37,14 @@ namespace mc_html_parser {
         return FALSE;
     };
     function get_end_tag( $tag, $buffer, $offset, $length ) {
+        if ( $tag === 'script' ) {
+            # <script> elements are dangerous as they can contain strings which can contain HTML tags.
+            # However, they are easier to parse as they cannot contain a nested <script> element.
+            if ( ( $offset = strpos( $buffer, '</script>', $offset ) ) !== FALSE ) {
+                return $offset + 8 - 1;
+            }
+            return FALSE;
+        }
         for ( ; $offset < $length; $offset++ ) {
             if ( $buffer[ $offset ] === '<' ) {
                 if ( $buffer[ $offset + 1 ] === '/' ) {
