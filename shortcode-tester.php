@@ -218,10 +218,16 @@ namespace mc_shortcode_tester {
         error_log( 'hide_html_elements():return=' . "\n#####\n" . $buffer . "/n#####" );
         return $buffer;
     };
-    $handle_output_buffering = function( $buffer ) use ( $hide_html_elements ) {
+    $handle_output_buffering = function( $buffer, $caller ) use ( $hide_html_elements ) {
+        error_log( 'handle_output_buffering():$caller=' . $caller );
         error_log( 'handle_output_buffering():$buffer=' . "\n#####\n" . $buffer . "/n#####" );
-        $buffer = $hide_html_elements( $buffer, 0, strpos( $buffer, START_OF_FOOTER ) );
-        return $hide_html_elements( $buffer, strpos( $buffer, START_OF_FOOTER ) + strlen( START_OF_FOOTER ), strlen( $buffer ) );
+        if ( $caller === 'wp_body_open' ) {
+            return $buffer;
+        }
+        if ( $caller === 'get_sidebar' ) {
+            $buffer = $hide_html_elements( $buffer, 0, strpos( $buffer, START_OF_FOOTER ) );
+            return $hide_html_elements( $buffer, strpos( $buffer, START_OF_FOOTER ) + strlen( START_OF_FOOTER ), strlen( $buffer ) );
+        }
     };
     $alt_template_redirect = function( ) use ( $handle_output_buffering ) {
         add_action( 'get_header', function ( $name ) {
@@ -236,8 +242,22 @@ namespace mc_shortcode_tester {
         add_action( 'loop_end', function( &$query ) {
             echo "<!-- ##### ACTION:loop_end -->\n";
         }, 10, 1 );
-        add_action( 'wp_body_open', function( ) {
+        $output_buffering_on     = FALSE;
+        $output_buffering_caller = NULL;
+        add_action( 'wp_body_open', function( )use ( &$output_buffering_on, &$output_buffering_caller, $handle_output_buffering ) {
             echo "<!-- ##### ACTION:wp_body_open -->\n";
+            if ( ! $output_buffering_on ) {
+                ob_start( function( $buffer ) use ( &$output_buffering_on, &$output_buffering_caller, $handle_output_buffering ) {
+                    if ( $output_buffering_on ) {
+                        $output_buffering_on     = FALSE;
+                        $output_buffering_caller = NULL;
+                        return $handle_output_buffering( $buffer, 'wp_body_open' );
+                    }
+                    return $buffer;
+                } );
+                $output_buffering_on     = TRUE;
+                $output_buffering_caller = 'wp_body_open';
+            }
         } );
         add_filter( 'bloginfo', function( $output, $show ) {
             echo "<!-- ##### FILTER:blog_info:[[{$output}]] -->\n";
@@ -252,31 +272,37 @@ namespace mc_shortcode_tester {
                 return $default;
             } );
         }
-        $output_buffering_on = FALSE;
-        add_action( 'get_sidebar', function ( $name ) use ( &$output_buffering_on, $handle_output_buffering ) {
+        add_action( 'get_sidebar', function ( $name ) use ( &$output_buffering_on, &$output_buffering_caller, $handle_output_buffering ) {
+            if ( $output_buffering_on && $output_buffering_caller === 'wp_body_open' ) {
+                ob_flush( );
+            }
             echo "<!-- ##### ACTION:get_sidebar $name -->\n";
             if ( ! $output_buffering_on ) {
-                ob_start( function( $buffer ) use ( &$output_buffering_on, $handle_output_buffering ) {
+                ob_start( function( $buffer ) use ( &$output_buffering_on, &$output_buffering_caller, $handle_output_buffering ) {
                     if ( $output_buffering_on ) {
-                        $output_buffering_on = FALSE;
-                        return $handle_output_buffering( $buffer );
+                        $output_buffering_on     = FALSE;
+                        $output_buffering_caller = NULL;
+                        return $handle_output_buffering( $buffer, 'get_sidebar' );
                     }
                     return $buffer;
                 } );
-                $output_buffering_on = TRUE;
+                $output_buffering_on     = TRUE;
+                $output_buffering_caller = 'get_sidebar';
             }
         } );
-        add_action( 'get_footer', function ( $name ) use ( &$output_buffering_on, $handle_output_buffering ) {
+        add_action( 'get_footer', function ( $name ) use ( &$output_buffering_on, &$output_buffering_caller, $handle_output_buffering ) {
             echo START_OF_FOOTER . "\n";
             if ( ! $output_buffering_on ) {
-                ob_start( function( $buffer ) use ( &$output_buffering_on, $handle_output_buffering ) {
+                ob_start( function( $buffer ) use ( &$output_buffering_on, &$output_buffering_caller, $handle_output_buffering ) {
                     if ( $output_buffering_on ) {
-                        $output_buffering_on = FALSE;
-                        return $handle_output_buffering( $buffer );
+                        $output_buffering_on     = FALSE;
+                        $output_buffering_caller = NULL;
+                        return $handle_output_buffering( $buffer, 'get_footer' );
                     }
                     return $buffer;
                 } );
-                $output_buffering_on = TRUE;
+                $output_buffering_on     = TRUE;
+                $output_buffering_caller = 'get_footer';
             }
         } );
         add_action( 'wp_footer', function( ) {
