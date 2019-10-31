@@ -176,28 +176,40 @@ namespace mc_shortcode_tester {
             $right_offset = \mc_html_parser\get_name( $buffer, $left_offset + 1, $length );
             $name         = substr( $buffer, $left_offset + 1, $right_offset - $left_offset );
             error_log( 'hide_html_elements():$name=' . $name );
-            $gt_offset    = \mc_html_parser\get_greater_than( $buffer, $right_offset + 1, $length );
-            error_log( 'hide_html_elements():...>...=' . substr( $buffer, $gt_offset + 1 - 8, 64 ) );
-            $offset       = \mc_html_parser\get_end_tag( $buffer, $gt_offset + 1, $name, $length );
-            if ( $offset === FALSE ) {
-                error_log( 'hide_html_elements():$gt_offset =' . $gt_offset );
-                error_log( 'hide_html_elements():( $length - $gt_offset ) =' . ( $length - $gt_offset ) );
-                error_log( 'hide_html_elements():substr( $buffer, $gt_offset ) = ' . substr( $buffer, $gt_offset ) );
-                break;
+            if ( ! in_array( $name, [ 'img', 'br' ] ) ) {
+                # Tag <name> should have a matching end tag </name>.
+                $gt_offset = \mc_html_parser\get_greater_than( $buffer, $right_offset + 1, $length );
+                error_log( 'hide_html_elements():...>...=' . substr( $buffer, ( $gt_offset + 1 ) - 16, 64 ) );
+                $offset    = \mc_html_parser\get_end_tag( $name, $buffer, $gt_offset + 1, $length );
+                if ( $offset === FALSE ) {
+                    # This should only happen on malformed HTML, i.e. no matching end tag </tag>.
+                    error_log( 'ERROR:hide_html_elements():Cannot find matching end tag "</' . $name . '>".' );
+                    error_log( 'ERROR:hide_html_elements():$gt_offset =' . $gt_offset );
+                    error_log( 'ERROR:hide_html_elements():( $length - $gt_offset ) =' . ( $length - $gt_offset ) );
+                    error_log( 'ERROR:hide_html_elements():substr( $buffer, $gt_offset ) = ' . substr( $buffer, $gt_offset ) );
+                    break;
+                }
+                error_log( 'hide_html_elements():</tag>...=' . substr( $buffer, ( $offset + 1 ) - 16, 64 ) );
             }
-            error_log( 'hide_html_elements():</tag>...=' . substr( $buffer, $offset + 1 - 8, 64 ) );
-            $elements[ ]  = (object) [ 'name' => $name, 'left' => $left_offset, 'right' => $gt_offset ];
-            $start        = $offset + 1;
-            if ( ++$n > 32 ) {
+            if ( $name !== 'script' ) {
+                # Add element to list of elements to hide.
+                $elements[ ] = (object) [ 'name' => $name, 'left' => $left_offset, 'right' => $gt_offset ];
+            }
+            $start = $offset + 1;
+            if ( ++$n > 1024 ) {
+                # This should not happen. If it does probably a programming error causing an infinite loop.
+                error_log( 'ERROR:hide_html_elements():Probably in an infinite loop.' );
                 break;
             }
         }
+        # Hide elements in reverse order so previous offsets are preserved.
         foreach ( array_reverse( $elements ) as $element ) {
             error_log( 'hide_html_elements():$name=' . $element->name );
             error_log( 'hide_html_elements():tag=' . substr( $buffer, $element->left, $element->right - ( $element->left - 1 ) ) );
             if ( ( $style_offset = strpos( substr( $buffer, $element->left, $element->right - ( $element->left - 1 ) ), 'style=' ) ) === FALSE ) {
                 $buffer = substr_replace( $buffer, ' style="display:none;"', $element->right, 0 );
             } else {
+                # Element already has an inline style attribute.
                 // TODO:
             }
         }
@@ -206,12 +218,8 @@ namespace mc_shortcode_tester {
     };
     $handle_output_buffering = function( $buffer ) use ( $hide_html_elements ) {
         error_log( 'handle_output_buffering():$buffer=' . "\n#####\n" . $buffer . "/n#####" );
-        $start_of_footer = strpos( $buffer, START_OF_FOOTER );
-        $buffer          = $hide_html_elements( $buffer, 0, $start_of_footer );
-        // return $buffer;
-        $start_of_footer = strpos( $buffer, START_OF_FOOTER ) + strlen( START_OF_FOOTER );
-        $buffer          = $hide_html_elements( $buffer, $start_of_footer, strlen( $buffer ) );
-        return $buffer;
+        $buffer = $hide_html_elements( $buffer, 0, strpos( $buffer, START_OF_FOOTER ) );
+        return $hide_html_elements( $buffer, strpos( $buffer, START_OF_FOOTER ) + strlen( START_OF_FOOTER ), strlen( $buffer ) );
     };
     $alt_template_redirect = function( ) use ( $handle_output_buffering ) {
         add_action( 'get_header', function ( $name ) {
