@@ -165,32 +165,34 @@ namespace mc_shortcode_tester {
 
     # $alt_template_redirect( ) will monitor template processing
 
-    $handle_output_buffering = function( $buffer ) {
-        error_log( 'handle_output_buffering():$buffer=' . "\n#####\n" . $buffer . "/n#####" );
+    $hide_html_elements = function( $buffer, $start, $length ) {
         $elements = [ ];
-        $length   = strpos( $buffer, START_OF_FOOTER );
-        $start    = 0;
         while ( ( $left_offset = \mc_html_parser\get_start_tag( $buffer, $start, $length ) ) !== FALSE ) {
             $right_offset = \mc_html_parser\get_name( $buffer, $left_offset + 1, $length );
             $name         = substr( $buffer, $left_offset + 1, $right_offset - $left_offset );
-            error_log( 'handle_output_buffering():$name=' . $name );
+            error_log( 'hide_html_elements():$name=' . $name );
             $gt_offset    = \mc_html_parser\get_greater_than( $buffer, $right_offset + 1, $length );
-            error_log( 'handle_output_buffering():substr( $buffer, $offset + 1, 32 )=' . substr( $buffer, $gt_offset + 1, 32 ) );
+            error_log( 'hide_html_elements():substr( $buffer, $offset + 1, 32 )=' . substr( $buffer, $gt_offset + 1, 32 ) );
             $offset       = \mc_html_parser\get_end_tag( $buffer, $gt_offset + 1, $name, $length );
-            error_log( 'handle_output_buffering():substr( $buffer, $offset + 1, 32 )=' . substr( $buffer, $offset + 1, 32 ) );
+            error_log( 'hide_html_elements():substr( $buffer, $offset + 1, 32 )=' . substr( $buffer, $offset + 1, 32 ) );
             $elements[ ]  = (object) [ 'name' => $name, 'left' => $left_offset, 'right' => $gt_offset ];
             $start        = $offset + 1;
         }
         foreach ( array_reverse( $elements ) as $element ) {
-            error_log( 'handle_output_buffering():$name=' . $element->name );
-            error_log( 'handle_output_buffering():tag=' . substr( $buffer, $element->left, $element->right - ( $element->left - 1 ) ) );
+            error_log( 'hide_html_elements():$name=' . $element->name );
+            error_log( 'hide_html_elements():tag=' . substr( $buffer, $element->left, $element->right - ( $element->left - 1 ) ) );
             if ( ( $style_offset = strpos( substr( $buffer, $element->left, $element->right - ( $element->left - 1 ) ), 'style=' ) ) === FALSE ) {
                 $buffer = substr_replace( $buffer, ' style="display:none;"', $element->right, 0 );
             } else {
                 // TODO:
             }
         }
-        error_log( 'handle_output_buffering():return=' . "\n#####\n" . $buffer . "/n#####" );
+        error_log( 'hide_html_elements():return=' . "\n#####\n" . $buffer . "/n#####" );
+        return $buffer;
+    };
+    $handle_output_buffering = function( $buffer ) use ( $hide_html_elements ) {
+        error_log( 'handle_output_buffering():$buffer=' . "\n#####\n" . $buffer . "/n#####" );
+        $buffer = $hide_html_elements( $buffer, 0, strpos( $buffer, START_OF_FOOTER ) );
         return $buffer;
     };
     $alt_template_redirect = function( ) use ( $handle_output_buffering ) {
