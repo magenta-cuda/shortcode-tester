@@ -176,7 +176,7 @@ namespace mc_shortcode_tester {
             $right_offset = \mc_html_parser\get_name( $buffer, $left_offset + 1, $length );
             $name         = substr( $buffer, $left_offset + 1, $right_offset - $left_offset );
             error_log( 'hide_html_elements():$name=' . $name );
-            if ( ! in_array( $name, [ 'img', 'br' ] ) ) {
+            if ( ! in_array( $name, [ 'img', 'br', 'hr', 'p' ] ) ) {
                 # Tag <name> should have a matching end tag </name>.
                 $gt_offset = \mc_html_parser\get_greater_than( $buffer, $right_offset + 1, $length );
                 error_log( 'hide_html_elements():...>...=' . substr( $buffer, ( $gt_offset + 1 ) - 16, 64 ) );
@@ -184,14 +184,14 @@ namespace mc_shortcode_tester {
                 if ( $offset === FALSE ) {
                     # This should only happen on malformed HTML, i.e. no matching end tag </tag>.
                     error_log( 'ERROR:hide_html_elements():Cannot find matching end tag "</' . $name . '>".' );
-                    error_log( 'ERROR:hide_html_elements():$gt_offset =' . $gt_offset );
-                    error_log( 'ERROR:hide_html_elements():( $length - $gt_offset ) =' . ( $length - $gt_offset ) );
+                    error_log( 'ERROR:hide_html_elements():                   $gt_offset = ' . $gt_offset );
+                    error_log( 'ERROR:hide_html_elements():     ( $length - $gt_offset ) = ' . ( $length - $gt_offset ) );
                     error_log( 'ERROR:hide_html_elements():substr( $buffer, $gt_offset ) = ' . substr( $buffer, $gt_offset ) );
                     break;
                 }
                 error_log( 'hide_html_elements():</tag>...=' . substr( $buffer, ( $offset + 1 ) - 16, 64 ) );
             }
-            if ( $name !== 'script' ) {
+            if ( ! in_array( $name, [ 'script', 'br', 'hr' ] ) ) {
                 # Add element to list of elements to hide.
                 $elements[ ] = (object) [ 'name' => $name, 'left' => $left_offset, 'right' => $gt_offset ];
             }
@@ -199,6 +199,8 @@ namespace mc_shortcode_tester {
             if ( ++$n > 1024 ) {
                 # This should not happen. If it does probably a programming error causing an infinite loop.
                 error_log( 'ERROR:hide_html_elements():Probably in an infinite loop.' );
+                error_log( 'ERROR:hide_html_elements():                   $start = ' . $start );
+                error_log( 'ERROR:hide_html_elements():substr( $buffer, $start ) = ' . substr( $buffer, $start ) );
                 break;
             }
         }

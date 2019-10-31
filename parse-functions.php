@@ -51,6 +51,8 @@ namespace mc_html_parser {
                     if ( $inner_tag !== $tag ) {
                         continue;
                     }
+                    # This is nested HTML element of the same tag.
+                    # The ending tag </name> of this nested element is not the matching end tag and should be ignored.
                     $offset = get_greater_than( $buffer, $offset + 1, $length );
                     $offset = get_end_tag( $inner_tag, $buffer, $offset + 1, $length );
                     continue;
