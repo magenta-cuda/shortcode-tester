@@ -37,7 +37,7 @@ namespace mc_shortcode_tester {
         
     require_once( 'parse-functions.php' );
 
-    define( 'START_OF_CONTENT', '<!-- ##### FILTER:the_content -->' );
+    define( 'START_OF_CONTENT', '<!-- ##### FILTER:the_content -->' );   # This is the mark.
     define( 'START_OF_FOOTER',  '<!-- ##### ACTION:get_footer -->' );
 
     $construct = function( ) {
@@ -166,6 +166,8 @@ namespace mc_shortcode_tester {
 
     # $alt_template_redirect( ) will monitor template processing
 
+    # hide_html_elements() hides top level HTML elements if the HTML element does not contain the mark.
+
     $hide_html_elements = function( $buffer, $start, $length, $mark = NULL ) {
         $elements = [ ];
         $n        = 0;
@@ -193,6 +195,8 @@ namespace mc_shortcode_tester {
                 }
                 error_log( 'hide_html_elements():</tag>...=' . substr( $buffer, ( $offset + 1 ) - 16, 64 ) );
                 if ( ! is_null( $mark ) ) {
+                    error_log( 'hide_html_elements():innerHTML = #####'
+                        . substr( $buffer, $gt_offset + 1, ( $offset - ( strlen( $name ) + 1 ) ) - ( $gt_offset + 1 ) ) . '#####' );
                     $marked = strpos( substr( $buffer, $gt_offset + 1, ( $offset - ( strlen( $name ) + 1 ) ) - ( $gt_offset + 1 ) ), $mark ) !== FALSE;
                 }
             }
@@ -227,7 +231,7 @@ namespace mc_shortcode_tester {
         error_log( 'handle_output_buffering():$caller=' . $caller );
         error_log( 'handle_output_buffering():$buffer=' . "\n#####\n" . $buffer . "/n#####" );
         if ( $caller === 'wp_body_open' ) {
-            return $buffer;
+            return $hide_html_elements( $buffer, 0, strlen( $buffer ), START_OF_CONTENT );
         }
         if ( $caller === 'get_sidebar' ) {
             $buffer = $hide_html_elements( $buffer, 0, strpos( $buffer, START_OF_FOOTER ) );
@@ -245,6 +249,7 @@ namespace mc_shortcode_tester {
             echo "<!-- ##### ACTION:the_post -->\n";
         }, 10, 2 );
         add_filter( 'the_content', function( $content ) {
+            # Insert the mark into the post content.
             return START_OF_CONTENT . "\n" . $content;
         }, 1 );
         add_filter( 'the_content', function( $content ) {

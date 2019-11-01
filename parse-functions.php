@@ -24,8 +24,10 @@ namespace mc_html_parser {
             # Attributes may have string values.
             # Strings are dangerous as they may contain HTML tags so find the ending delimiter.
             if ( $buffer[ $offset ] === '"' || $buffer[ $offset ] === '\'' ) {
-                $offset = strpos( $buffer, $buffer[ $offset ], $offset + 1 );
-                if ( $offset === FALSE ) {
+                $delim = $buffer[ $offset ];
+                if ( ( $offset = strpos( $buffer, $delim, $offset + 1 ) ) === FALSE ) {
+                    error_log( 'ERROR:\mc_html_parser\get_greater_than():Cannot find matching ending ' . $delim );
+                    error_log( 'ERROR:\mc_html_parser\get_greater_than():The string attribute begins with: "' . substr( $buffer, $offset, 64 ) . '..."' );
                     return FALSE;
                 }
                 continue;
@@ -63,8 +65,17 @@ namespace mc_html_parser {
                     }
                     # This is nested HTML element of the same tag.
                     # The ending tag </name> of this nested element is not the matching end tag and should be ignored.
-                    $offset = get_greater_than( $buffer, $offset + 1, $length );
-                    $offset = get_end_tag( $inner_tag, $buffer, $offset + 1, $length );
+                    if ( ( $gt_offset = get_greater_than( $buffer, $offset + 1, $length ) ) === FALSE ) {
+                        return FALSE;
+                    }
+                    if ( ( $offset = get_end_tag( $inner_tag, $buffer, $gt_offset + 1, $length ) ) === FALSE ) {
+                        error_log( 'ERROR:\mc_html_parser\get_end_tag():Cannot find matching end tag "</' . $inner_tag . '>".' );
+                        error_log( 'ERROR:\mc_html_parser\get_end_tag():The HTML element begins with: "' . substr( $buffer, $prev_offset, 64 ) . '..."' );
+                        # return FALSE;
+                        # If we are parsing a HTML fragment then this may not be an error as the fragment may not yet be complete.
+                        $offset = $gt_offset;
+                        continue;
+                    }
                     continue;
                 }
             }
