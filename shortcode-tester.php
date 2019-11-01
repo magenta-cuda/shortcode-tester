@@ -37,7 +37,8 @@ namespace mc_shortcode_tester {
         
     require_once( 'parse-functions.php' );
 
-    define( 'START_OF_FOOTER', '<!-- ##### ACTION:get_footer -->' );
+    define( 'START_OF_CONTENT', '<!-- ##### FILTER:the_content -->' );
+    define( 'START_OF_FOOTER',  '<!-- ##### ACTION:get_footer -->' );
 
     $construct = function( ) {
 
@@ -165,7 +166,7 @@ namespace mc_shortcode_tester {
 
     # $alt_template_redirect( ) will monitor template processing
 
-    $hide_html_elements = function( $buffer, $start, $length ) {
+    $hide_html_elements = function( $buffer, $start, $length, $mark = NULL ) {
         $elements = [ ];
         $n        = 0;
         error_log( 'hide_html_elements():$length=' . $length );
@@ -176,6 +177,7 @@ namespace mc_shortcode_tester {
             $right_offset = \mc_html_parser\get_name( $buffer, $left_offset + 1, $length );
             $name         = substr( $buffer, $left_offset + 1, $right_offset - $left_offset );
             error_log( 'hide_html_elements():$name=' . $name );
+            $marked       = FALSE;
             if ( ! in_array( $name, [ 'img', 'br', 'hr', 'p' ] ) ) {
                 # Tag <name> should have a matching end tag </name>.
                 $gt_offset = \mc_html_parser\get_greater_than( $buffer, $right_offset + 1, $length );
@@ -190,8 +192,11 @@ namespace mc_shortcode_tester {
                     break;
                 }
                 error_log( 'hide_html_elements():</tag>...=' . substr( $buffer, ( $offset + 1 ) - 16, 64 ) );
+                if ( ! is_null( $mark ) ) {
+                    $marked = strpos( substr( $buffer, $gt_offset + 1, ( $offset - ( strlen( $name ) + 1 ) ) - ( $gt_offset + 1 ) ), $mark ) !== FALSE;
+                }
             }
-            if ( ! in_array( $name, [ 'script', 'br', 'hr' ] ) ) {
+            if ( ! $marked && ! in_array( $name, [ 'script', 'br', 'hr' ] ) ) {
                 # Add element to list of elements to hide.
                 $elements[ ] = (object) [ 'name' => $name, 'left' => $left_offset, 'right' => $gt_offset ];
             }
@@ -239,12 +244,21 @@ namespace mc_shortcode_tester {
         add_action( 'the_post', function( &$post, &$query ) {
             echo "<!-- ##### ACTION:the_post -->\n";
         }, 10, 2 );
-        add_action( 'loop_end', function( &$query ) {
+        add_filter( 'the_content', function( $content ) {
+            return START_OF_CONTENT . "\n" . $content;
+        }, 1 );
+        add_filter( 'the_content', function( $content ) {
+            return $content;
+        }, PHP_INT_MAX );
+        add_action( 'loop_end', function( &$query ) use ( &$output_buffering_on, &$output_buffering_caller ) {
+            if ( $output_buffering_on && $output_buffering_caller === 'wp_body_open' ) {
+                ob_flush( );
+            }
             echo "<!-- ##### ACTION:loop_end -->\n";
         }, 10, 1 );
         $output_buffering_on     = FALSE;
         $output_buffering_caller = NULL;
-        add_action( 'wp_body_open', function( )use ( &$output_buffering_on, &$output_buffering_caller, $handle_output_buffering ) {
+        add_action( 'wp_body_open', function( ) use ( &$output_buffering_on, &$output_buffering_caller, $handle_output_buffering ) {
             echo "<!-- ##### ACTION:wp_body_open -->\n";
             if ( ! $output_buffering_on ) {
                 ob_start( function( $buffer ) use ( &$output_buffering_on, &$output_buffering_caller, $handle_output_buffering ) {
@@ -291,6 +305,9 @@ namespace mc_shortcode_tester {
             }
         } );
         add_action( 'get_footer', function ( $name ) use ( &$output_buffering_on, &$output_buffering_caller, $handle_output_buffering ) {
+            if ( $output_buffering_on && $output_buffering_caller === 'wp_body_open' ) {
+                ob_flush( );
+            }
             echo START_OF_FOOTER . "\n";
             if ( ! $output_buffering_on ) {
                 ob_start( function( $buffer ) use ( &$output_buffering_on, &$output_buffering_caller, $handle_output_buffering ) {
