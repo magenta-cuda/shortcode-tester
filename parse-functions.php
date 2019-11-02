@@ -71,10 +71,8 @@ namespace mc_html_parser {
                     if ( ( $offset = get_end_tag( $inner_tag, $buffer, $gt_offset + 1, $length ) ) === FALSE ) {
                         error_log( 'ERROR:\mc_html_parser\get_end_tag():Cannot find matching end tag "</' . $inner_tag . '>".' );
                         error_log( 'ERROR:\mc_html_parser\get_end_tag():The HTML element begins with: "' . substr( $buffer, $prev_offset, 64 ) . '..."' );
-                        # return FALSE;
                         # If we are parsing a HTML fragment then this may not be an error as the fragment may not yet be complete.
-                        $offset = $gt_offset;
-                        continue;
+                        return FALSE;
                     }
                     continue;
                 }

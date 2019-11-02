@@ -168,13 +168,20 @@ namespace mc_shortcode_tester {
 
     # hide_html_elements() hides top level HTML elements if the HTML element does not contain the mark.
 
-    $hide_html_elements = function( $buffer, $start, $length, $mark = NULL ) {
+    $hide_html_elements = function( $buffer, $start, $length, $mark = NULL, $is_fragment = FALSE ) {
         $elements = [ ];
         $n        = 0;
         error_log( 'hide_html_elements():$length=' . $length );
         error_log( 'hide_html_elements():substr( $buffer, $length - 16 ) = ' . substr( $buffer, $length - 16 ) );
 
         while ( ( $left_offset = \mc_html_parser\get_start_tag( $buffer, $start, $length ) ) !== FALSE ) {
+            if ( ++$n > 1024 ) {
+                # This should not happen. If it does probably a programming error causing an infinite loop.
+                error_log( 'ERROR:hide_html_elements():Probably in an infinite loop.' );
+                error_log( 'ERROR:hide_html_elements():                   $start = ' . $start );
+                error_log( 'ERROR:hide_html_elements():substr( $buffer, $start ) = ' . substr( $buffer, $start ) );
+                break;
+            }
             error_log( 'hide_html_elements():$start=' . $start );
             $right_offset = \mc_html_parser\get_name( $buffer, $left_offset + 1, $length );
             $name         = substr( $buffer, $left_offset + 1, $right_offset - $left_offset );
@@ -184,14 +191,19 @@ namespace mc_shortcode_tester {
                 # Tag <name> should have a matching end tag </name>.
                 $gt_offset = \mc_html_parser\get_greater_than( $buffer, $right_offset + 1, $length );
                 error_log( 'hide_html_elements():...>...=' . substr( $buffer, ( $gt_offset + 1 ) - 16, 64 ) );
-                $offset    = \mc_html_parser\get_end_tag( $name, $buffer, $gt_offset + 1, $length );
-                if ( $offset === FALSE ) {
+                if ( ( $offset = \mc_html_parser\get_end_tag( $name, $buffer, $gt_offset + 1, $length ) ) === FALSE ) {
                     # This should only happen on malformed HTML, i.e. no matching end tag </tag>.
                     error_log( 'ERROR:hide_html_elements():Cannot find matching end tag "</' . $name . '>".' );
-                    error_log( 'ERROR:hide_html_elements():                   $gt_offset = ' . $gt_offset );
-                    error_log( 'ERROR:hide_html_elements():     ( $length - $gt_offset ) = ' . ( $length - $gt_offset ) );
-                    error_log( 'ERROR:hide_html_elements():substr( $buffer, $gt_offset ) = ' . substr( $buffer, $gt_offset ) );
-                    break;
+                    error_log( 'ERROR:hide_html_elements(): HTML element begins with: "' . substr( $buffer, $left_offset, 64 ) . '..."' );
+                    if ( $is_fragment ) {
+                        # However, if we are parsing a HTML fragment then this may not be an error as the fragment may not yet be complete.
+                        # So, ignore this tag and continue.
+                        $start = $gt_offset + 1;
+                        continue;
+                    }
+                    error_log( 'ERROR:hide_html_elements():Cannot find matching end tag "</' . $name . '>".' );
+                    error_log( 'ERROR:hide_html_elements(): HTML element begins with: "' . substr( $buffer, $left_offset, 64 ) . '..."' );
+                    return FALSE;
                 }
                 error_log( 'hide_html_elements():</tag>...=' . substr( $buffer, ( $offset + 1 ) - 16, 64 ) );
                 if ( ! is_null( $mark ) ) {
@@ -205,13 +217,6 @@ namespace mc_shortcode_tester {
                 $elements[ ] = (object) [ 'name' => $name, 'left' => $left_offset, 'right' => $gt_offset ];
             }
             $start = $offset + 1;
-            if ( ++$n > 1024 ) {
-                # This should not happen. If it does probably a programming error causing an infinite loop.
-                error_log( 'ERROR:hide_html_elements():Probably in an infinite loop.' );
-                error_log( 'ERROR:hide_html_elements():                   $start = ' . $start );
-                error_log( 'ERROR:hide_html_elements():substr( $buffer, $start ) = ' . substr( $buffer, $start ) );
-                break;
-            }
         }
         # Hide elements in reverse order so previous offsets are preserved.
         foreach ( array_reverse( $elements ) as $element ) {
@@ -231,7 +236,8 @@ namespace mc_shortcode_tester {
         error_log( 'handle_output_buffering():$caller=' . $caller );
         error_log( 'handle_output_buffering():$buffer=' . "\n#####\n" . $buffer . "/n#####" );
         if ( $caller === 'wp_body_open' ) {
-            return $hide_html_elements( $buffer, 0, strlen( $buffer ), START_OF_CONTENT );
+            # $buffer contains a HTML fragment with embedded mark.
+            return $hide_html_elements( $buffer, 0, strlen( $buffer ), START_OF_CONTENT, TRUE );
         }
         if ( $caller === 'get_sidebar' ) {
             $buffer = $hide_html_elements( $buffer, 0, strpos( $buffer, START_OF_FOOTER ) );
