@@ -31,7 +31,7 @@
     A Tiny Post Content Template Interpreter. However, since it is generally useful I have separated into its own plugin.
 */
 
-# http://localhost/tablepress-test/?mc-sct=tpcti_html_eval_post_content
+# http://localhost/tablepress-test/?mc-sct=tpcti_html_eval_post_content&post_content=[table id=1 /]
 
 namespace mc_shortcode_tester {
         
@@ -263,7 +263,13 @@ namespace mc_shortcode_tester {
         } );
         add_filter( 'the_content', function( $content ) {
             # Insert the mark into the post content.
-            return START_OF_CONTENT . "\n" . $content;
+            # return START_OF_CONTENT . "\n" . $content;
+            # TODO: Following is a hack to do an experiment with "http://localhost/tablepress-test/?mc-sct=tpcti_html_eval_post_content"
+            # return START_OF_CONTENT . "\n" . '[table id=1 /]';
+            # Replace $content with $_REQUEST['post_content'].
+            # This will evaluate $_REQUEST['post_content'] in the context of the post specified by the URL.
+            error_log( 'FILTER:the_content():$_REQUEST["post_content"] = ' . $_REQUEST['post_content'] );
+            return START_OF_CONTENT . "\n" . $_REQUEST['post_content'];
         }, 1 );
         add_filter( 'the_content', function( $content ) {
             return $content;
