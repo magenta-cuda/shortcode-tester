@@ -193,9 +193,9 @@ namespace mc_shortcode_tester {
                 error_log( 'hide_html_elements():...>...=' . substr( $buffer, ( $gt_offset + 1 ) - 16, 64 ) );
                 if ( ( $offset = \mc_html_parser\get_end_tag( $name, $buffer, $gt_offset + 1, $length ) ) === FALSE ) {
                     # This should only happen on malformed HTML, i.e. no matching end tag </tag>.
-                    error_log( 'ERROR:hide_html_elements():Cannot find matching end tag "</' . $name . '>".' );
-                    error_log( 'ERROR:hide_html_elements(): HTML element begins with: "' . substr( $buffer, $left_offset, 64 ) . '..."' );
                     if ( $is_fragment ) {
+                        error_log( 'ERROR:hide_html_elements():Cannot find matching end tag "</' . $name . '>".' );
+                        error_log( 'ERROR:hide_html_elements(): HTML element begins with: "' . substr( $buffer, $left_offset, 64 ) . '..."' );
                         # However, if we are parsing a HTML fragment then this may not be an error as the fragment may not yet be complete.
                         # So, ignore this tag and continue.
                         $start = $gt_offset + 1;
@@ -209,7 +209,11 @@ namespace mc_shortcode_tester {
                 if ( ! is_null( $mark ) ) {
                     error_log( 'hide_html_elements():innerHTML = #####'
                         . substr( $buffer, $gt_offset + 1, ( $offset - ( strlen( $name ) + 1 ) ) - ( $gt_offset + 1 ) ) . '#####' );
-                    $marked = strpos( substr( $buffer, $gt_offset + 1, ( $offset - ( strlen( $name ) + 1 ) ) - ( $gt_offset + 1 ) ), $mark ) !== FALSE;
+                    if ( ( $marked = strpos( substr( $buffer, $gt_offset + 1, ( $offset - ( strlen( $name ) + 1 ) ) - ( $gt_offset + 1 ) ), $mark ) )
+                            !== FALSE ) {
+                        # TODO: Should also remove siblings of marked.
+                        # TODO: But, the only sibling seems to be the title which can be easily removed in another way.
+                    }
                 }
             }
             if ( ! $marked && ! in_array( $name, [ 'script', 'br', 'hr' ] ) ) {
@@ -254,6 +258,9 @@ namespace mc_shortcode_tester {
         add_action( 'the_post', function( &$post, &$query ) {
             echo "<!-- ##### ACTION:the_post -->\n";
         }, 10, 2 );
+        add_filter( 'the_title', function( $title ) {
+            return '';
+        } );
         add_filter( 'the_content', function( $content ) {
             # Insert the mark into the post content.
             return START_OF_CONTENT . "\n" . $content;
