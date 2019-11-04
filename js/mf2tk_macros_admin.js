@@ -13,7 +13,8 @@ jQuery(document).ready(function(){
         divPopupOuter.hide();
     });
     // "Shortcode Tester" evaluate button
-    divShortcode.find("button#mf2tk-shortcode-tester-evaluate,button#mf2tk-shortcode-tester-evaluate-and-prettify").click(function(){
+    divShortcode.find("button#mf2tk-shortcode-tester-evaluate,button#mf2tk-shortcode-tester-evaluate-and-prettify,button#mf2tk-shortcode-tester-show-rendered")
+            .click(function(){
         var permalink=jQuery("#sample-permalink a");
         if(!permalink.length){
             // Gutenberg
@@ -23,10 +24,6 @@ jQuery(document).ready(function(){
                 return;
             }
         }
-        var url=permalink[0].href+"?mc-sct=tpcti_eval_post_content"
-        var prettify=this.id==="mf2tk-shortcode-tester-evaluate-and-prettify";
-        var post_id=jQuery("form#post input#post_ID[type='hidden']").val();
-        var source=jQuery("div#mf2tk-shortcode-tester div#mf2tk-shortcode-tester-area-source textarea").val();
         var button=jQuery("button#sct_ix-shortcode-tester");
         var nonce;
         if(button.length){
@@ -35,6 +32,14 @@ jQuery(document).ready(function(){
             // Gutenberg
             nonce=mf2tk_macros_admin.shortcode_tester_nonce;
         }
+        var url=permalink[0].href;
+        var source=jQuery("div#mf2tk-shortcode-tester div#mf2tk-shortcode-tester-area-source textarea").val();
+        if(this.id==="mf2tk-shortcode-tester-show-rendered"){
+            return;
+        }
+        var prettify=this.id==="mf2tk-shortcode-tester-evaluate-and-prettify";
+        var post_id=jQuery("form#post input#post_ID[type='hidden']").val();
+        url+="?mc-sct=tpcti_eval_post_content";
         jQuery("div#mf2tk-shortcode-tester div#mf2tk-shortcode-tester-area-result textarea").val("Evaluating..., please wait...");
         // Use AJAX to request the server to evaluate the post content fragment
         // N.B. - This is not the usual WordPress .../wp-admin/adim-ajax.php AJAX request. The shortcode must be

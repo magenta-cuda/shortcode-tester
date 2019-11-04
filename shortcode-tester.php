@@ -127,6 +127,7 @@ namespace mc_shortcode_tester {
         <button id="mf2tk-shortcode-tester-show-source" class="mf2tk-shortcode-tester-button">Show Source Only</button>
         <button id="mf2tk-shortcode-tester-show-result" class="mf2tk-shortcode-tester-button">Show Result Only</button>
         <button id="mf2tk-shortcode-tester-show-both" class="mf2tk-shortcode-tester-button">Show Both</button>
+        <button id="mf2tk-shortcode-tester-show-rendered" class="mf2tk-shortcode-tester-button">Show Rendered</button>
     </div>
     <div class="sct_ix-shortcode_tester_input_output">
         <div class="sct_ix-shortcode_tester_half">
