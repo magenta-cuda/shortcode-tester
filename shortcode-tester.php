@@ -298,6 +298,9 @@ namespace mc_shortcode_tester {
                 $output_buffering_caller = 'wp_body_open';
             }
         } );
+        add_filter( 'get_edit_post_link', function ( $link ) {
+            return '';
+        } );
         add_filter( 'bloginfo', function( $output, $show ) {
             echo "<!-- ##### FILTER:blog_info:[[{$output}]] -->\n";
             return $output;
@@ -363,6 +366,9 @@ namespace mc_shortcode_tester {
     // TODO: run template processing monitor - experiment only remove!
 
     if ( ! empty( $_GET[ 'mc-sct' ] ) && $_GET[ 'mc-sct' ] === 'tpcti_html_eval_post_content' ) {
+        add_filter( 'show_admin_bar', function( $show_admin_bar ) {
+            return FALSE;
+        } );
         add_action( 'template_redirect', function( ) use ( $alt_template_redirect ) {
             $alt_template_redirect( );
         } );
