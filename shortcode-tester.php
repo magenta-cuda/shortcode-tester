@@ -172,9 +172,8 @@ namespace mc_shortcode_tester {
     $hide_html_elements = function( $buffer, $start, $length, $mark = NULL, $is_fragment = FALSE ) {
         $elements = [ ];
         $n        = 0;
-        error_log( 'hide_html_elements():$length=' . $length );
-        error_log( 'hide_html_elements():substr( $buffer, $length - 16 ) = ' . substr( $buffer, $length - 16 ) );
-
+        # error_log( 'hide_html_elements():$length=' . $length );
+        # error_log( 'hide_html_elements():substr( $buffer, $length - 16 ) = ' . substr( $buffer, $length - 16 ) );
         while ( ( $left_offset = \mc_html_parser\get_start_tag( $buffer, $start, $length ) ) !== FALSE ) {
             if ( ++$n > 1024 ) {
                 # This should not happen. If it does probably a programming error causing an infinite loop.
@@ -183,15 +182,15 @@ namespace mc_shortcode_tester {
                 error_log( 'ERROR:hide_html_elements():substr( $buffer, $start ) = ' . substr( $buffer, $start ) );
                 break;
             }
-            error_log( 'hide_html_elements():$start=' . $start );
+            # error_log( 'hide_html_elements():$start=' . $start );
             $right_offset = \mc_html_parser\get_name( $buffer, $left_offset + 1, $length );
             $name         = substr( $buffer, $left_offset + 1, $right_offset - $left_offset );
-            error_log( 'hide_html_elements():$name=' . $name );
+            # error_log( 'hide_html_elements():$name=' . $name );
             $marked       = FALSE;
             if ( ! in_array( $name, [ 'img', 'br', 'hr', 'p' ] ) ) {
                 # Tag <name> should have a matching end tag </name>.
                 $gt_offset = \mc_html_parser\get_greater_than( $buffer, $right_offset + 1, $length );
-                error_log( 'hide_html_elements():...>...=' . substr( $buffer, ( $gt_offset + 1 ) - 16, 64 ) );
+                # error_log( 'hide_html_elements():...>...=' . substr( $buffer, ( $gt_offset + 1 ) - 16, 64 ) );
                 if ( ( $offset = \mc_html_parser\get_end_tag( $name, $buffer, $gt_offset + 1, $length ) ) === FALSE ) {
                     # This should only happen on malformed HTML, i.e. no matching end tag </tag>.
                     if ( $is_fragment ) {
@@ -206,10 +205,10 @@ namespace mc_shortcode_tester {
                     error_log( 'ERROR:hide_html_elements(): HTML element begins with: "' . substr( $buffer, $left_offset, 64 ) . '..."' );
                     return FALSE;
                 }
-                error_log( 'hide_html_elements():</tag>...=' . substr( $buffer, ( $offset + 1 ) - 16, 64 ) );
+                # error_log( 'hide_html_elements():</tag>...=' . substr( $buffer, ( $offset + 1 ) - 16, 64 ) );
                 if ( ! is_null( $mark ) ) {
-                    error_log( 'hide_html_elements():innerHTML = #####'
-                        . substr( $buffer, $gt_offset + 1, ( $offset - ( strlen( $name ) + 1 ) ) - ( $gt_offset + 1 ) ) . '#####' );
+                    # error_log( 'hide_html_elements():innerHTML = #####'
+                    #     . substr( $buffer, $gt_offset + 1, ( $offset - ( strlen( $name ) + 1 ) ) - ( $gt_offset + 1 ) ) . '#####' );
                     if ( ( $marked = strpos( substr( $buffer, $gt_offset + 1, ( $offset - ( strlen( $name ) + 1 ) ) - ( $gt_offset + 1 ) ), $mark ) )
                             !== FALSE ) {
                         # TODO: Should also remove siblings of marked.
@@ -225,8 +224,8 @@ namespace mc_shortcode_tester {
         }
         # Hide elements in reverse order so previous offsets are preserved.
         foreach ( array_reverse( $elements ) as $element ) {
-            error_log( 'hide_html_elements():$name=' . $element->name );
-            error_log( 'hide_html_elements():tag=' . substr( $buffer, $element->left, $element->right - ( $element->left - 1 ) ) );
+            # error_log( 'hide_html_elements():$name=' . $element->name );
+            # error_log( 'hide_html_elements():tag=' . substr( $buffer, $element->left, $element->right - ( $element->left - 1 ) ) );
             if ( ( $style_offset = strpos( substr( $buffer, $element->left, $element->right - ( $element->left - 1 ) ), 'style=' ) ) === FALSE ) {
                 $buffer = substr_replace( $buffer, ' style="display:none;"', $element->right, 0 );
             } else {
@@ -234,12 +233,12 @@ namespace mc_shortcode_tester {
                 // TODO:
             }
         }
-        error_log( 'hide_html_elements():return=' . "\n#####\n" . $buffer . "/n#####" );
+        # error_log( 'hide_html_elements():return=' . "\n#####\n" . $buffer . "/n#####" );
         return $buffer;
     };
     $handle_output_buffering = function( $buffer, $caller ) use ( $hide_html_elements ) {
-        error_log( 'handle_output_buffering():$caller=' . $caller );
-        error_log( 'handle_output_buffering():$buffer=' . "\n#####\n" . $buffer . "/n#####" );
+        # error_log( 'handle_output_buffering():$caller=' . $caller );
+        # error_log( 'handle_output_buffering():$buffer=' . "\n#####\n" . $buffer . "/n#####" );
         if ( $caller === 'wp_body_open' ) {
             # $buffer contains a HTML fragment with embedded mark.
             return $hide_html_elements( $buffer, 0, strlen( $buffer ), START_OF_CONTENT, TRUE );
@@ -264,12 +263,9 @@ namespace mc_shortcode_tester {
         } );
         add_filter( 'the_content', function( $content ) {
             # Insert the mark into the post content.
-            # return START_OF_CONTENT . "\n" . $content;
-            # TODO: Following is a hack to do an experiment with "http://localhost/tablepress-test/?mc-sct=tpcti_html_eval_post_content"
-            # return START_OF_CONTENT . "\n" . '[table id=1 /]';
             # Replace $content with $_REQUEST['post_content'].
             # This will evaluate $_REQUEST['post_content'] in the context of the post specified by the URL.
-            error_log( 'FILTER:the_content():$_REQUEST["post_content"] = ' . $_REQUEST['post_content'] );
+            # error_log( 'FILTER:the_content():$_REQUEST["post_content"] = ' . $_REQUEST['post_content'] );
             return START_OF_CONTENT . "\n" . $_REQUEST['post_content'];
         }, 1 );
         add_filter( 'the_content', function( $content ) {
@@ -362,8 +358,6 @@ namespace mc_shortcode_tester {
     };   # $alt_template_redirect = function() {
 
     $construct( );
-
-    // TODO: run template processing monitor - experiment only remove!
 
     if ( ! empty( $_GET[ 'mc-sct' ] ) && $_GET[ 'mc-sct' ] === 'tpcti_html_eval_post_content' ) {
         add_filter( 'show_admin_bar', function( $show_admin_bar ) {
