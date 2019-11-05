@@ -249,6 +249,7 @@ namespace mc_shortcode_tester {
         }
     };
     $alt_template_redirect = function( ) use ( $handle_output_buffering ) {
+/*
         add_action( 'get_header', function ( $name ) {
             echo "<!-- ##### ACTION:get_header -->\n";
         } );
@@ -258,6 +259,7 @@ namespace mc_shortcode_tester {
         add_action( 'the_post', function( &$post, &$query ) {
             echo "<!-- ##### ACTION:the_post -->\n";
         }, 10, 2 );
+ */
         add_filter( 'the_title', function( $title ) {
             return '';
         } );
@@ -268,14 +270,16 @@ namespace mc_shortcode_tester {
             # error_log( 'FILTER:the_content():$_REQUEST["post_content"] = ' . $_REQUEST['post_content'] );
             return START_OF_CONTENT . "\n" . $_REQUEST['post_content'];
         }, 1 );
+/*
         add_filter( 'the_content', function( $content ) {
             return $content;
         }, PHP_INT_MAX );
+ */
         add_action( 'loop_end', function( &$query ) use ( &$output_buffering_on, &$output_buffering_caller ) {
             if ( $output_buffering_on && $output_buffering_caller === 'wp_body_open' ) {
                 ob_flush( );
             }
-            echo "<!-- ##### ACTION:loop_end -->\n";
+            # echo "<!-- ##### ACTION:loop_end -->\n";
         }, 10, 1 );
         $output_buffering_on     = FALSE;
         $output_buffering_caller = NULL;
@@ -297,13 +301,15 @@ namespace mc_shortcode_tester {
         add_filter( 'get_edit_post_link', function ( $link ) {
             return '';
         } );
+/*
         add_filter( 'bloginfo', function( $output, $show ) {
-            echo "<!-- ##### FILTER:blog_info:[[{$output}]] -->\n";
+            echo "<!-- ##### FILTER:bloginfo:[[{$output}]] -->\n";
             return $output;
         }, 10, 2 );
         add_filter( 'has_nav_menu', function( $has_nav_menu, $location ) {
             return $has_nav_menu;
         }, 10, 2 );
+ */
 /*
  * Dangerous to do this as this can insert a HTML comment inside a HTML tag.
  *
@@ -318,7 +324,7 @@ namespace mc_shortcode_tester {
             if ( $output_buffering_on && $output_buffering_caller === 'wp_body_open' ) {
                 ob_flush( );
             }
-            echo "<!-- ##### ACTION:get_sidebar $name -->\n";
+            # echo "<!-- ##### ACTION:get_sidebar $name -->\n";
             if ( ! $output_buffering_on ) {
                 ob_start( function( $buffer ) use ( &$output_buffering_on, &$output_buffering_caller, $handle_output_buffering ) {
                     if ( $output_buffering_on ) {
@@ -350,11 +356,13 @@ namespace mc_shortcode_tester {
                 $output_buffering_caller = 'get_footer';
             }
         } );
+/*
         add_action( 'wp_footer', function( ) {
             echo "<!-- ##### ACTION:wp_footer -->\n";
         } );
         register_shutdown_function( function( ) use ( &$output_buffering_on ) {
         } );
+ */
     };   # $alt_template_redirect = function() {
 
     $construct( );
