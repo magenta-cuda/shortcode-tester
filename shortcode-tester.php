@@ -305,12 +305,16 @@ namespace mc_shortcode_tester {
         add_filter( 'has_nav_menu', function( $has_nav_menu, $location ) {
             return $has_nav_menu;
         }, 10, 2 );
+/*
+ * Dangerous to do this as this can insert a HTML comment inside a HTML tag.
+ *
         foreach ( [ 'header_image' ] as $name ) {
             add_filter( "theme_mod_{$name}", function( $default ) use ( $name ) {
                 echo "<!-- ##### FILTER:theme_mod_{$name}:[[{$default}]] -->\n";
                 return $default;
             } );
         }
+ */
         add_action( 'get_sidebar', function ( $name ) use ( &$output_buffering_on, &$output_buffering_caller, $handle_output_buffering ) {
             if ( $output_buffering_on && $output_buffering_caller === 'wp_body_open' ) {
                 ob_flush( );
