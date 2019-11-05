@@ -38,6 +38,7 @@ namespace mc_shortcode_tester {
     require_once( 'parse-functions.php' );
 
     define( 'START_OF_CONTENT', '<!-- ##### FILTER:the_content -->' );   # This is the mark.
+    define( 'START_OF_SIDEBAR', '<!-- ##### ACTION:get_sidebar -->' );
     define( 'START_OF_FOOTER',  '<!-- ##### ACTION:get_footer -->' );
 
     $construct = function( ) {
@@ -194,8 +195,8 @@ namespace mc_shortcode_tester {
                 if ( ( $offset = \mc_html_parser\get_end_tag( $name, $buffer, $gt_offset + 1, $length ) ) === FALSE ) {
                     # This should only happen on malformed HTML, i.e. no matching end tag </tag>.
                     if ( $is_fragment ) {
-                        error_log( 'ERROR:hide_html_elements():Cannot find matching end tag "</' . $name . '>".' );
-                        error_log( 'ERROR:hide_html_elements(): HTML element begins with: "' . substr( $buffer, $left_offset, 64 ) . '..."' );
+                        # error_log( 'hide_html_elements():Cannot find matching end tag "</' . $name . '>".' );
+                        # error_log( 'hide_html_elements(): HTML element begins with: "' . substr( $buffer, $left_offset, 64 ) . '..."' );
                         # However, if we are parsing a HTML fragment then this may not be an error as the fragment may not yet be complete.
                         # So, ignore this tag and continue.
                         $start = $gt_offset + 1;
@@ -244,8 +245,11 @@ namespace mc_shortcode_tester {
             return $hide_html_elements( $buffer, 0, strlen( $buffer ), START_OF_CONTENT, TRUE );
         }
         if ( $caller === 'get_sidebar' ) {
-            $buffer = $hide_html_elements( $buffer, 0, strpos( $buffer, START_OF_FOOTER ) );
-            return $hide_html_elements( $buffer, strpos( $buffer, START_OF_FOOTER ) + strlen( START_OF_FOOTER ), strlen( $buffer ) );
+            # N.B. There may be multiple sidebars.
+            return $hide_html_elements( $buffer, 0, strlen( $buffer ) );
+        }
+        if ( $caller === 'get_footer' ) {
+            return $hide_html_elements( $buffer, 0, strlen( $buffer ) );
         }
     };
     $alt_template_redirect = function( ) use ( $handle_output_buffering ) {
@@ -276,15 +280,13 @@ namespace mc_shortcode_tester {
         }, PHP_INT_MAX );
  */
         add_action( 'loop_end', function( &$query ) use ( &$output_buffering_on, &$output_buffering_caller ) {
-            if ( $output_buffering_on && $output_buffering_caller === 'wp_body_open' ) {
-                ob_flush( );
+            if ( $output_buffering_on ) {
+                ob_end_flush( );
             }
             # echo "<!-- ##### ACTION:loop_end -->\n";
         }, 10, 1 );
-        $output_buffering_on     = FALSE;
-        $output_buffering_caller = NULL;
         add_action( 'wp_body_open', function( ) use ( &$output_buffering_on, &$output_buffering_caller, $handle_output_buffering ) {
-            echo "<!-- ##### ACTION:wp_body_open -->\n";
+            # echo "<!-- ##### ACTION:wp_body_open -->\n";
             if ( ! $output_buffering_on ) {
                 ob_start( function( $buffer ) use ( &$output_buffering_on, &$output_buffering_caller, $handle_output_buffering ) {
                     if ( $output_buffering_on ) {
@@ -321,10 +323,11 @@ namespace mc_shortcode_tester {
         }
  */
         add_action( 'get_sidebar', function ( $name ) use ( &$output_buffering_on, &$output_buffering_caller, $handle_output_buffering ) {
-            if ( $output_buffering_on && $output_buffering_caller === 'wp_body_open' ) {
-                ob_flush( );
+            if ( $output_buffering_on ) {
+                ob_end_flush( );
             }
-            # echo "<!-- ##### ACTION:get_sidebar $name -->\n";
+            error_log( 'ACTION:get_sidebar():' );
+            echo START_OF_SIDEBAR . "\n";
             if ( ! $output_buffering_on ) {
                 ob_start( function( $buffer ) use ( &$output_buffering_on, &$output_buffering_caller, $handle_output_buffering ) {
                     if ( $output_buffering_on ) {
@@ -339,8 +342,8 @@ namespace mc_shortcode_tester {
             }
         } );
         add_action( 'get_footer', function ( $name ) use ( &$output_buffering_on, &$output_buffering_caller, $handle_output_buffering ) {
-            if ( $output_buffering_on && $output_buffering_caller === 'wp_body_open' ) {
-                ob_flush( );
+            if ( $output_buffering_on ) {
+                ob_end_flush( );
             }
             echo START_OF_FOOTER . "\n";
             if ( ! $output_buffering_on ) {
