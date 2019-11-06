@@ -254,13 +254,14 @@ namespace mc_shortcode_tester {
             $buffer = $hide_html_elements( $buffer, 0, $sidebar_offset !== FALSE ? $sidebar_offset
                                                : ( $footer_offset !== FALSE ? $footer_offset : strlen( $buffer ) ),
                                            START_OF_CONTENT, TRUE );
-            $offset = $sidebar_offset;
+            $offset = 0;
             # N.B. There may be multiple sidebars.
-            while ( $offset !== FALSE) {
+            while ( ( $offset = strpos( $buffer, START_OF_SIDEBAR, $offset ) ) !== FALSE ) {
                 $sidebar_offset = strpos( $buffer, START_OF_SIDEBAR, $offset + $start_of_sidebar_len );
+                $footer_offset  = strpos( $buffer, START_OF_FOOTER,  $offset + $start_of_sidebar_len );
                 $buffer = $hide_html_elements( $buffer, offset, $sidebar_offset !== FALSE ? $sidebar_offset
                                                    : ( $footer_offset !== FALSE ? $footer_offset : strlen( $buffer ) ) );
-                $offset = $sidebar_offset;
+                $offset += $start_of_sidebar_len;
             }
             if ( ( $offset = strpos( $buffer, START_OF_FOOTER ) ) !== FALSE ) {
                 $buffer = $hide_html_elements( $buffer, $offset + strlen( START_OF_FOOTER ), strlen( $buffer ) );
@@ -272,14 +273,14 @@ namespace mc_shortcode_tester {
                 error_log( 'ERROR:handle_output_buffering():unexpected start of sidebar buffer, probably mismatched nested ob_start() output buffers.' );
                 error_log( 'ERROR:handle_output_buffering():$buffer = "' . substr( $buffer, 64 ) );
             }
-            $offset        = 0;
-            $footer_offset = strpos( $buffer, START_OF_FOOTER );
+            $offset = 0;
             # N.B. There may be multiple sidebars.
-            while ( $offset !== FALSE) {
+            while ( ( $offset = strpos( $buffer, START_OF_SIDEBAR, $offset ) ) !== FALSE ) {
                 $sidebar_offset = strpos( $buffer, START_OF_SIDEBAR, $offset + $start_of_sidebar_len );
+                $footer_offset  = strpos( $buffer, START_OF_FOOTER,  $offset + $start_of_sidebar_len );
                 $buffer = $hide_html_elements( $buffer, $offset, $sidebar_offset !== FALSE ? $sidebar_offset
                                                    : ( $footer_offset !== FALSE ? $footer_offset : strlen( $buffer ) ) );
-                $offset = $sidebar_offset;
+                $offset += $start_of_sidebar_len;
             }
             if ( ( $offset = strpos( $buffer, START_OF_FOOTER ) ) !== FALSE ) {
                 $buffer = $hide_html_elements( $buffer, $offset + start_of_footer_len, strlen( $buffer ) );
