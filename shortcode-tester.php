@@ -31,8 +31,6 @@
     A Tiny Post Content Template Interpreter. However, since it is generally useful I have separated into its own plugin.
 */
 
-# http://localhost/tablepress-test/?mc-sct=tpcti_html_eval_post_content&post_content=[table id=1 /]
-
 namespace mc_shortcode_tester {
         
     require_once( 'parse-functions.php' );
@@ -239,7 +237,9 @@ namespace mc_shortcode_tester {
         return $buffer;
     };
     $handle_output_buffering = function( $buffer, $caller, $ob_state ) {
-        error_log( 'handle_output_buffering():$caller=' . $caller );
+        error_log( 'handle_output_buffering():         $caller = ' . $caller );
+        error_log( 'handle_output_buffering():$ob_state->ender = ' . ( $ob_state->ender !== NULL ? $ob_state->ender
+                                                                                                 : 'end of execution' ) );
         # error_log( 'handle_output_buffering():$buffer=' . "\n#####\n" . $buffer . "\n#####" );
         $hide_html_elements   = $ob_state->hide_html_elements;
         $start_of_sidebar_len = strlen( START_OF_SIDEBAR );
@@ -262,12 +262,12 @@ namespace mc_shortcode_tester {
             while ( ( $offset = strpos( $buffer, START_OF_SIDEBAR, $offset ) ) !== FALSE ) {
                 $sidebar_offset = strpos( $buffer, START_OF_SIDEBAR, $offset + $start_of_sidebar_len );
                 $footer_offset  = strpos( $buffer, START_OF_FOOTER,  $offset + $start_of_sidebar_len );
-                $buffer = $ob_state->hide_html_elements( $buffer, offset, $sidebar_offset !== FALSE ? $sidebar_offset
-                                                             : ( $footer_offset !== FALSE ? $footer_offset : strlen( $buffer ) ) );
+                $buffer = $hide_html_elements( $buffer, offset, $sidebar_offset !== FALSE ? $sidebar_offset
+                                                   : ( $footer_offset !== FALSE ? $footer_offset : strlen( $buffer ) ) );
                 $offset += $start_of_sidebar_len;
             }
             if ( ( $offset = strpos( $buffer, START_OF_FOOTER ) ) !== FALSE ) {
-                $buffer = $ob_state->hide_html_elements( $buffer, $offset + strlen( START_OF_FOOTER ), strlen( $buffer ) );
+                $buffer = $hide_html_elements( $buffer, $offset + strlen( START_OF_FOOTER ), strlen( $buffer ) );
             }
             # error_log( 'handle_output_buffering():$caller=' . $caller );
             # error_log( 'handle_output_buffering():$return=' . "\n#####\n" . $buffer . "\n#####" );
@@ -288,7 +288,7 @@ namespace mc_shortcode_tester {
                 }
             }
             if ( ( $offset = strpos( $buffer, START_OF_FOOTER ) ) !== FALSE ) {
-                $buffer = $ob_state->hide_html_elements( $buffer, $offset + start_of_footer_len, strlen( $buffer ) );
+                $buffer = $hide_html_elements( $buffer, $offset + start_of_footer_len, strlen( $buffer ) );
             }
         } else if ( $caller === 'get_footer' ) {
             if ( strpos( $buffer, START_OF_FOOTER ) !== 0 ) {
@@ -297,6 +297,7 @@ namespace mc_shortcode_tester {
             }
             $buffer = $hide_html_elements( $buffer, 0, strlen( $buffer ) );
         }
+        # Reset $ob_state.
         $ob_state->on     = FALSE;
         $ob_state->caller = NULL;
         $ob_state->level  = NULL;
@@ -306,7 +307,7 @@ namespace mc_shortcode_tester {
     $alt_template_redirect = function( ) use ( $handle_output_buffering, $hide_html_elements ) {
         # Using PHP's output buffering can be tricky since they can easily be incorrectly nested.
         # We must call ob_end_flush() only after all calls to ob_start() after our ob_start() have been matched.
-        # The following variables will have the state of our output buffering.
+        # $ob_state will have the state of our output buffering and have references to our output buffering handlers.
         $ob_state = (object)[ 'on'                      => FALSE,
                               'caller'                  => NULL,
                               'level'                   => NULL,
@@ -329,8 +330,7 @@ namespace mc_shortcode_tester {
             return '';
         } );
         add_filter( 'the_content', function( $content ) {
-            # Insert the mark into the post content.
-            # Replace $content with $_REQUEST['post_content'].
+            # Insert the mark into the post content and replace $content with $_REQUEST['post_content'].
             # This will evaluate $_REQUEST['post_content'] in the context of the post specified by the URL.
             # error_log( 'FILTER:the_content():$_REQUEST["post_content"] = ' . $_REQUEST['post_content'] );
             return START_OF_CONTENT . "\n" . $_REQUEST['post_content'];
@@ -370,8 +370,7 @@ namespace mc_shortcode_tester {
         add_filter( 'has_nav_menu', function( $has_nav_menu, $location ) {
             return $has_nav_menu;
         }, 10, 2 );
- */
-/*
+ *
  * Dangerous to do this as this can insert a HTML comment inside a HTML tag.
  *
         foreach ( [ 'header_image' ] as $name ) {
@@ -401,9 +400,9 @@ namespace mc_shortcode_tester {
             }
         } );
         add_action( 'get_footer', function ( $name ) use ( $ob_state ) {
-            if ( $ob_state->on &&  ob_get_level() === $ob_state->level ) {
+            if ( $ob_state->on && ob_get_level() === $ob_state->level ) {
                 error_log( 'ACTION:get_footer():ob_end_flush()' );
-                $ob_state->ender = 'get_sidebar';
+                $ob_state->ender = 'get_footer';
                 ob_end_flush( );
             }
             if ( ! $ob_state->on ) {
