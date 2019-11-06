@@ -237,9 +237,9 @@ namespace mc_shortcode_tester {
         return $buffer;
     };
     $handle_output_buffering = function( $buffer, $caller, $ob_state ) {
-        error_log( 'handle_output_buffering():         $caller = ' . $caller );
-        error_log( 'handle_output_buffering():$ob_state->ender = ' . ( $ob_state->ender !== NULL ? $ob_state->ender
-                                                                                                 : 'end of execution' ) );
+        # error_log( 'handle_output_buffering():         $caller = ' . $caller );
+        # error_log( 'handle_output_buffering():$ob_state->ender = ' . ( $ob_state->ender !== NULL ? $ob_state->ender
+        #                                                                                          : 'end of execution' ) );
         # error_log( 'handle_output_buffering():$buffer=' . "\n#####\n" . $buffer . "\n#####" );
         $hide_html_elements   = $ob_state->hide_html_elements;
         $start_of_sidebar_len = strlen( START_OF_SIDEBAR );
@@ -342,7 +342,7 @@ namespace mc_shortcode_tester {
  */
         add_action( 'loop_end', function( &$query ) use ( $ob_state ) {
             if ( $ob_state->on && ob_get_level() === $ob_state->level ) {
-                error_log( 'ACTION:loop_end():ob_end_flush()' );
+                # error_log( 'ACTION:loop_end():ob_end_flush()' );
                 $ob_state->ender = 'loop_end';
                 ob_end_flush( );
             }
@@ -381,9 +381,9 @@ namespace mc_shortcode_tester {
         }
  */
         add_action( 'get_sidebar', function ( $name ) use ( $ob_state ) {
-            error_log( 'ACTION:get_sidebar():' );
+            # error_log( 'ACTION:get_sidebar():' );
             if ( $ob_state->on && ob_get_level() === $ob_state->level ) {
-                error_log( 'ACTION:get_sidebar():ob_end_flush()' );
+                # error_log( 'ACTION:get_sidebar():ob_end_flush()' );
                 $ob_state->ender = 'get_sidebar';
                 ob_end_flush( );
             }
@@ -401,7 +401,7 @@ namespace mc_shortcode_tester {
         } );
         add_action( 'get_footer', function ( $name ) use ( $ob_state ) {
             if ( $ob_state->on && ob_get_level() === $ob_state->level ) {
-                error_log( 'ACTION:get_footer():ob_end_flush()' );
+                # error_log( 'ACTION:get_footer():ob_end_flush()' );
                 $ob_state->ender = 'get_footer';
                 ob_end_flush( );
             }
