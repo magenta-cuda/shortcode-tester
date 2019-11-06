@@ -239,8 +239,8 @@ namespace mc_shortcode_tester {
         return $buffer;
     };
     $handle_output_buffering = function( $buffer, $caller ) use ( $hide_html_elements ) {
-        # error_log( 'handle_output_buffering():$caller=' . $caller );
-        # error_log( 'handle_output_buffering():$buffer=' . "\n#####\n" . $buffer . "/n#####" );
+        error_log( 'handle_output_buffering():$caller=' . $caller );
+        # error_log( 'handle_output_buffering():$buffer=' . "\n#####\n" . $buffer . "\n#####" );
         $start_of_sidebar_len = strlen( START_OF_SIDEBAR );
         $start_of_footer_len  = strlen( START_OF_FOOTER );
         if ( $caller === 'wp_body_open' ) {
@@ -266,6 +266,8 @@ namespace mc_shortcode_tester {
             if ( ( $offset = strpos( $buffer, START_OF_FOOTER ) ) !== FALSE ) {
                 $buffer = $hide_html_elements( $buffer, $offset + strlen( START_OF_FOOTER ), strlen( $buffer ) );
             }
+            # error_log( 'handle_output_buffering():$caller=' . $caller );
+            # error_log( 'handle_output_buffering():$return=' . "\n#####\n" . $buffer . "\n#####" );
             return $buffer;
         }
         if ( $caller === 'get_sidebar' ) {
@@ -275,12 +277,14 @@ namespace mc_shortcode_tester {
             }
             $offset = 0;
             # N.B. There may be multiple sidebars.
-            while ( ( $offset = strpos( $buffer, START_OF_SIDEBAR, $offset ) ) !== FALSE ) {
+            while ( TRUE ) {
                 $sidebar_offset = strpos( $buffer, START_OF_SIDEBAR, $offset + $start_of_sidebar_len );
                 $footer_offset  = strpos( $buffer, START_OF_FOOTER,  $offset + $start_of_sidebar_len );
                 $buffer = $hide_html_elements( $buffer, $offset, $sidebar_offset !== FALSE ? $sidebar_offset
                                                    : ( $footer_offset !== FALSE ? $footer_offset : strlen( $buffer ) ) );
-                $offset += $start_of_sidebar_len;
+                if ( ( $offset = strpos( $buffer, START_OF_SIDEBAR, $offset + $start_of_sidebar_len) ) === FALSE ) {
+                    break;
+                }
             }
             if ( ( $offset = strpos( $buffer, START_OF_FOOTER ) ) !== FALSE ) {
                 $buffer = $hide_html_elements( $buffer, $offset + start_of_footer_len, strlen( $buffer ) );
@@ -330,6 +334,7 @@ namespace mc_shortcode_tester {
  */
         add_action( 'loop_end', function( &$query ) use ( &$output_buffering_on, &$output_buffering_caller, &$output_buffering_level ) {
             if ( $output_buffering_on && ob_get_level() === $output_buffering_level ) {
+                error_log( 'ACTION:loop_end():ob_end_flush()' );
                 ob_end_flush( );
             }
             # echo "<!-- ##### ACTION:loop_end -->\n";
@@ -378,6 +383,7 @@ namespace mc_shortcode_tester {
         add_action( 'get_sidebar', function ( $name ) use ( &$output_buffering_on, &$output_buffering_caller,
                 &$output_buffering_level, $handle_output_buffering ) {
             if ( $output_buffering_on && ob_get_level() === $output_buffering_level ) {
+                error_log( 'ACTION:get_sidebar():ob_end_flush()' );
                 ob_end_flush( );
             }
             error_log( 'ACTION:get_sidebar():' );
@@ -401,6 +407,7 @@ namespace mc_shortcode_tester {
         add_action( 'get_footer', function ( $name ) use ( &$output_buffering_on, &$output_buffering_caller,
                 &$output_buffering_level, $handle_output_buffering ) {
             if ( $output_buffering_on &&  ob_get_level() === $output_buffering_level ) {
+                error_log( 'ACTION:get_footer():ob_end_flush()' );
                 ob_end_flush( );
             }
             if ( ! $output_buffering_on ) {
