@@ -37,6 +37,7 @@ namespace mc_shortcode_tester {
         
     require_once( 'parse-functions.php' );
 
+    define( 'START_OF_BODY',    '<!-- ##### ACTION:wp_body_open -->' );
     define( 'START_OF_CONTENT', '<!-- ##### FILTER:the_content -->' );   # This is the mark.
     define( 'START_OF_SIDEBAR', '<!-- ##### ACTION:get_sidebar -->' );
     define( 'START_OF_FOOTER',  '<!-- ##### ACTION:get_footer -->' );
@@ -240,19 +241,66 @@ namespace mc_shortcode_tester {
     $handle_output_buffering = function( $buffer, $caller ) use ( $hide_html_elements ) {
         # error_log( 'handle_output_buffering():$caller=' . $caller );
         # error_log( 'handle_output_buffering():$buffer=' . "\n#####\n" . $buffer . "/n#####" );
+        $start_of_sidebar_len = strlen( START_OF_SIDEBAR );
+        $start_of_footer_len  = strlen( START_OF_FOOTER );
         if ( $caller === 'wp_body_open' ) {
+            if ( strpos( $buffer, START_OF_BODY ) !== 0 ) {
+                error_log( 'ERROR:handle_output_buffering():unexpected start of body buffer, probably mismatched nested ob_start() output buffers.' );
+                error_log( 'ERROR:handle_output_buffering():$buffer = "' . substr( $buffer, 64 ) );
+            }
+            $sidebar_offset = strpos( $buffer, START_OF_SIDEBAR );
+            $footer_offset  = strpos( $buffer, START_OF_FOOTER );
             # $buffer contains a HTML fragment with embedded mark.
-            return $hide_html_elements( $buffer, 0, strlen( $buffer ), START_OF_CONTENT, TRUE );
+            $buffer = $hide_html_elements( $buffer, 0, $sidebar_offset !== FALSE ? $sidebar_offset
+                                               : ( $footer_offset !== FALSE ? $footer_offset : strlen( $buffer ) ),
+                                           START_OF_CONTENT, TRUE );
+            $offset = $sidebar_offset;
+            # N.B. There may be multiple sidebars.
+            while ( $offset !== FALSE) {
+                $sidebar_offset = strpos( $buffer, START_OF_SIDEBAR, $offset + $start_of_sidebar_len );
+                $buffer = $hide_html_elements( $buffer, offset, $sidebar_offset !== FALSE ? $sidebar_offset
+                                                   : ( $footer_offset !== FALSE ? $footer_offset : strlen( $buffer ) ) );
+                $offset = $sidebar_offset;
+            }
+            if ( ( $offset = strpos( $buffer, START_OF_FOOTER ) ) !== FALSE ) {
+                $buffer = $hide_html_elements( $buffer, $offset + strlen( START_OF_FOOTER ), strlen( $buffer ) );
+            }
+            return $buffer;
         }
         if ( $caller === 'get_sidebar' ) {
+            if ( strpos( $buffer, START_OF_SIDEBAR ) !== 0 ) {
+                error_log( 'ERROR:handle_output_buffering():unexpected start of sidebar buffer, probably mismatched nested ob_start() output buffers.' );
+                error_log( 'ERROR:handle_output_buffering():$buffer = "' . substr( $buffer, 64 ) );
+            }
+            $offset        = 0;
+            $footer_offset = strpos( $buffer, START_OF_FOOTER );
             # N.B. There may be multiple sidebars.
-            return $hide_html_elements( $buffer, 0, strlen( $buffer ) );
+            while ( $offset !== FALSE) {
+                $sidebar_offset = strpos( $buffer, START_OF_SIDEBAR, $offset + $start_of_sidebar_len );
+                $buffer = $hide_html_elements( $buffer, $offset, $sidebar_offset !== FALSE ? $sidebar_offset
+                                                   : ( $footer_offset !== FALSE ? $footer_offset : strlen( $buffer ) ) );
+                $offset = $sidebar_offset;
+            }
+            if ( ( $offset = strpos( $buffer, START_OF_FOOTER ) ) !== FALSE ) {
+                $buffer = $hide_html_elements( $buffer, $offset + start_of_footer_len, strlen( $buffer ) );
+            }
+            return $buffer;
         }
         if ( $caller === 'get_footer' ) {
+            if ( strpos( $buffer, START_OF_FOOTER ) !== 0 ) {
+                error_log( 'ERROR:handle_output_buffering():unexpected start of footer buffer, probably mismatched nested ob_start() output buffers.' );
+                error_log( 'ERROR:handle_output_buffering():$buffer = "' . substr( $buffer, 64 ) );
+            }
             return $hide_html_elements( $buffer, 0, strlen( $buffer ) );
         }
     };
     $alt_template_redirect = function( ) use ( $handle_output_buffering ) {
+        # Using PHP's output buffering can be tricky so they can easily be incorrectly nested.
+        # We must call ob_end_flush() only after all nested calls after our ob_start() have been matched.
+        # The following variables will have the state of our output buffering.
+        $output_buffering_on     = FALSE;
+        $output_buffering_caller = NULL;
+        $output_buffering_level  = ob_get_level();
 /*
         add_action( 'get_header', function ( $name ) {
             echo "<!-- ##### ACTION:get_header -->\n";
@@ -279,25 +327,29 @@ namespace mc_shortcode_tester {
             return $content;
         }, PHP_INT_MAX );
  */
-        add_action( 'loop_end', function( &$query ) use ( &$output_buffering_on, &$output_buffering_caller ) {
-            if ( $output_buffering_on ) {
+        add_action( 'loop_end', function( &$query ) use ( &$output_buffering_on, &$output_buffering_caller, &$output_buffering_level ) {
+            if ( $output_buffering_on && ob_get_level() === $output_buffering_level ) {
                 ob_end_flush( );
             }
             # echo "<!-- ##### ACTION:loop_end -->\n";
         }, 10, 1 );
-        add_action( 'wp_body_open', function( ) use ( &$output_buffering_on, &$output_buffering_caller, $handle_output_buffering ) {
-            # echo "<!-- ##### ACTION:wp_body_open -->\n";
+        add_action( 'wp_body_open', function( ) use ( &$output_buffering_on, &$output_buffering_caller,
+                &$output_buffering_level, $handle_output_buffering ) {
             if ( ! $output_buffering_on ) {
-                ob_start( function( $buffer ) use ( &$output_buffering_on, &$output_buffering_caller, $handle_output_buffering ) {
+                ob_start( function( $buffer ) use ( &$output_buffering_on, &$output_buffering_caller,
+                        &$output_buffering_level, $handle_output_buffering ) {
                     if ( $output_buffering_on ) {
                         $output_buffering_on     = FALSE;
                         $output_buffering_caller = NULL;
+                        $output_buffering_level  = NULL;
                         return $handle_output_buffering( $buffer, 'wp_body_open' );
                     }
                     return $buffer;
                 } );
                 $output_buffering_on     = TRUE;
                 $output_buffering_caller = 'wp_body_open';
+                $output_buffering_level  = ob_get_level();
+                echo START_OF_BODY . "\n";
             }
         } );
         add_filter( 'get_edit_post_link', function ( $link ) {
@@ -322,41 +374,49 @@ namespace mc_shortcode_tester {
             } );
         }
  */
-        add_action( 'get_sidebar', function ( $name ) use ( &$output_buffering_on, &$output_buffering_caller, $handle_output_buffering ) {
-            if ( $output_buffering_on ) {
+        add_action( 'get_sidebar', function ( $name ) use ( &$output_buffering_on, &$output_buffering_caller,
+                &$output_buffering_level, $handle_output_buffering ) {
+            if ( $output_buffering_on && ob_get_level() === $output_buffering_level ) {
                 ob_end_flush( );
             }
             error_log( 'ACTION:get_sidebar():' );
-            echo START_OF_SIDEBAR . "\n";
             if ( ! $output_buffering_on ) {
-                ob_start( function( $buffer ) use ( &$output_buffering_on, &$output_buffering_caller, $handle_output_buffering ) {
+                ob_start( function( $buffer ) use ( &$output_buffering_on, &$output_buffering_caller,
+                        &$output_buffering_level, $handle_output_buffering ) {
                     if ( $output_buffering_on ) {
                         $output_buffering_on     = FALSE;
                         $output_buffering_caller = NULL;
+                        $output_buffering_level  = NULL;
                         return $handle_output_buffering( $buffer, 'get_sidebar' );
                     }
                     return $buffer;
                 } );
                 $output_buffering_on     = TRUE;
                 $output_buffering_caller = 'get_sidebar';
+                $output_buffering_level  = ob_get_level();
+                echo START_OF_SIDEBAR . "\n";
             }
         } );
-        add_action( 'get_footer', function ( $name ) use ( &$output_buffering_on, &$output_buffering_caller, $handle_output_buffering ) {
-            if ( $output_buffering_on ) {
+        add_action( 'get_footer', function ( $name ) use ( &$output_buffering_on, &$output_buffering_caller,
+                &$output_buffering_level, $handle_output_buffering ) {
+            if ( $output_buffering_on &&  ob_get_level() === $output_buffering_level ) {
                 ob_end_flush( );
             }
-            echo START_OF_FOOTER . "\n";
             if ( ! $output_buffering_on ) {
-                ob_start( function( $buffer ) use ( &$output_buffering_on, &$output_buffering_caller, $handle_output_buffering ) {
+                ob_start( function( $buffer ) use ( &$output_buffering_on, &$output_buffering_caller,
+                            &$output_buffering_level, $handle_output_buffering ) {
                     if ( $output_buffering_on ) {
                         $output_buffering_on     = FALSE;
                         $output_buffering_caller = NULL;
+                        $output_buffering_level  = NULL;
                         return $handle_output_buffering( $buffer, 'get_footer' );
                     }
                     return $buffer;
                 } );
                 $output_buffering_on     = TRUE;
                 $output_buffering_caller = 'get_footer';
+                $output_buffering_level  = ob_get_level();
+                echo START_OF_FOOTER . "\n";
             }
         } );
 /*
