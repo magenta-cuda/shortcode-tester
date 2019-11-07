@@ -398,6 +398,7 @@ namespace mc_shortcode_tester {
                 $ob_state->ender = 'get_sidebar';
                 ob_end_flush( );
             }
+            $ob_state = empty( $ob_state_stack ) ? NULL : end( $ob_state_stack );
             if ( is_null( $ob_state ) || ! $ob_state->on ) {
                 ob_start( function( $buffer ) use ( &$ob_state_stack ) {
                     $handle_output_buffering = Output_Buffering_State::$handle_output_buffering;
@@ -414,6 +415,7 @@ namespace mc_shortcode_tester {
                 $ob_state->ender = 'get_footer';
                 ob_end_flush( );
             }
+            $ob_state = empty( $ob_state_stack ) ? NULL : end( $ob_state_stack );
             if ( is_null( $ob_state ) || ! $ob_state->on ) {
                 ob_start( function( $buffer ) use ( &$ob_state_stack ) {
                     $handle_output_buffering = Output_Buffering_State::$handle_output_buffering;
