@@ -235,10 +235,11 @@ namespace mc_shortcode_tester {
         return $buffer;
     };
 
-    $handle_output_buffering = function( $buffer, $caller, &$ob_state ) {
-        # error_log( 'handle_output_buffering():         $caller = ' . $caller );
-        # error_log( 'handle_output_buffering():$ob_state->ender = ' . ( $ob_state->ender !== NULL ? $ob_state->ender
-        #                                                                                          : 'end of execution' ) );
+    $handle_output_buffering = function( $buffer, $caller, &$ob_state_stack ) {
+        $ob_state = end( $ob_state_stack );
+        error_log( 'handle_output_buffering():         $caller = ' . $caller );
+        error_log( 'handle_output_buffering():$ob_state->ender = ' . ( $ob_state->ender !== NULL ? $ob_state->ender
+                                                                                                 : 'end of execution' ) );
         # error_log( 'handle_output_buffering():$buffer=' . "\n#####\n" . $buffer . "\n#####" );
         $hide_html_elements   = Output_Buffering_State::$hide_html_elements;
         $start_of_sidebar_len = strlen( START_OF_SIDEBAR );
@@ -298,7 +299,7 @@ namespace mc_shortcode_tester {
             $buffer = $hide_html_elements( $buffer, 0, strlen( $buffer ) );
         }
         # Reset $ob_state.
-        $ob_state = NULL;
+        array_pop( $ob_state_stack );
         return $buffer;
     };
 
@@ -325,7 +326,7 @@ namespace mc_shortcode_tester {
         # Using PHP's output buffering can be tricky since they can easily be incorrectly nested.
         # We must call ob_end_flush() only after all calls to ob_start() after our ob_start() have been matched.
         # $ob_state will have the state of our output buffering and have references to our output buffering handlers.
-        $ob_state = NULL;
+        $ob_state_stack = [ ];
 /*
         add_action( 'get_header', function ( $name ) {
             echo "<!-- ##### ACTION:get_header -->\n";
@@ -351,20 +352,21 @@ namespace mc_shortcode_tester {
             return $content;
         }, PHP_INT_MAX );
  */
-        add_action( 'loop_end', function( &$query ) use ( &$ob_state ) {
-            if ( ! is_null( $ob_state ) && $ob_state->on && ob_get_level() === $ob_state->level ) {
+        add_action( 'loop_end', function( &$query ) use ( &$ob_state_stack ) {
+            $ob_state = empty( $ob_state_stack ) ? NULL : end( $ob_state_stack );
+            if ( ! is_null( $ob_state ) && $ob_state->on && ob_get_level( ) === $ob_state->level ) {
                 # error_log( 'ACTION:loop_end():ob_end_flush()' );
                 $ob_state->ender = 'loop_end';
                 ob_end_flush( );
             }
             # echo "<!-- ##### ACTION:loop_end -->\n";
         }, 10, 1 );
-        add_action( 'wp_body_open', function( ) use ( &$ob_state ) {
-            ob_start( function( $buffer ) use ( &$ob_state ) {
+        add_action( 'wp_body_open', function( ) use ( &$ob_state_stack ) {
+            ob_start( function( $buffer ) use ( &$ob_state_stack ) {
                 $handle_output_buffering = Output_Buffering_State::$handle_output_buffering;
-                return $handle_output_buffering( $buffer, 'wp_body_open', $ob_state );
+                return $handle_output_buffering( $buffer, 'wp_body_open', $ob_state_stack );
             } );
-            $ob_state = new Output_Buffering_State( 'wp_body_open' );
+            array_push( $ob_state_stack, new Output_Buffering_State( 'wp_body_open' ) );
             echo START_OF_BODY . "\n";
         } );
         add_filter( 'get_edit_post_link', function ( $link ) {
@@ -388,34 +390,36 @@ namespace mc_shortcode_tester {
             } );
         }
  */
-        add_action( 'get_sidebar', function ( $name ) use ( &$ob_state ) {
+        add_action( 'get_sidebar', function ( $name ) use ( &$ob_state_stack ) {
             # error_log( 'ACTION:get_sidebar():' );
-            if ( ! is_null( $ob_state ) && $ob_state->on && ob_get_level() === $ob_state->level ) {
+            $ob_state = empty( $ob_state_stack ) ? NULL : end( $ob_state_stack );
+            if ( ! is_null( $ob_state ) && $ob_state->on && ob_get_level( ) === $ob_state->level ) {
                 # error_log( 'ACTION:get_sidebar():ob_end_flush()' );
                 $ob_state->ender = 'get_sidebar';
                 ob_end_flush( );
             }
             if ( is_null( $ob_state ) || ! $ob_state->on ) {
-                ob_start( function( $buffer ) use ( &$ob_state ) {
+                ob_start( function( $buffer ) use ( &$ob_state_stack ) {
                     $handle_output_buffering = Output_Buffering_State::$handle_output_buffering;
-                    return $handle_output_buffering( $buffer, 'get_sidebar', $ob_state );
+                    return $handle_output_buffering( $buffer, 'get_sidebar', $ob_state_stack );
                 } );
-                $ob_state = new Output_Buffering_State( 'get_sidebar' );
+                array_push( $ob_state_stack, new Output_Buffering_State( 'get_sidebar' ) );
                 echo START_OF_SIDEBAR . "\n";
             }
         } );
-        add_action( 'get_footer', function ( $name ) use ( &$ob_state ) {
-            if ( ! is_null( $ob_state ) && $ob_state->on && ob_get_level() === $ob_state->level ) {
+        add_action( 'get_footer', function ( $name ) use ( &$ob_state_stack ) {
+            $ob_state = empty( $ob_state_stack ) ? NULL : end( $ob_state_stack );
+            if ( ! is_null( $ob_state ) && $ob_state->on && ob_get_level( ) === $ob_state->level ) {
                 # error_log( 'ACTION:get_footer():ob_end_flush()' );
                 $ob_state->ender = 'get_footer';
                 ob_end_flush( );
             }
             if ( is_null( $ob_state ) || ! $ob_state->on ) {
-                ob_start( function( $buffer ) use ( &$ob_state ) {
+                ob_start( function( $buffer ) use ( &$ob_state_stack ) {
                     $handle_output_buffering = Output_Buffering_State::$handle_output_buffering;
-                    return $handle_output_buffering( $buffer, 'get_footer', $ob_state );
+                    return $handle_output_buffering( $buffer, 'get_footer', $ob_state_stack );
                } );
-                $ob_state = new Output_Buffering_State( 'get_footer' );
+                array_push( $ob_state_stack, new Output_Buffering_State( 'get_footer' ) );
                 echo START_OF_FOOTER . "\n";
             }
         } );
@@ -423,10 +427,10 @@ namespace mc_shortcode_tester {
         add_action( 'wp_footer', function( ) {
             echo "<!-- ##### ACTION:wp_footer -->\n";
         } );
-        register_shutdown_function( function( ) use ( &$ob_state ) {
+        register_shutdown_function( function( ) use ( &$ob_state_stack ) {
         } );
  */
-    };   # $alt_template_redirect = function() {
+    };   # $alt_template_redirect = function( ) {
 
     $construct( );
 
