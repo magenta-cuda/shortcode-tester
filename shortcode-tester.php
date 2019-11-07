@@ -283,7 +283,8 @@ namespace mc_shortcode_tester {
                 $footer_offset  = strpos( $buffer, START_OF_FOOTER,  $offset + $start_of_sidebar_len );
                 $buffer = $hide_html_elements( $buffer, $offset, $sidebar_offset !== FALSE ? $sidebar_offset
                                                    : ( $footer_offset !== FALSE ? $footer_offset : strlen( $buffer ) ) );
-                if ( ( $offset = strpos( $buffer, START_OF_SIDEBAR, $offset + $start_of_sidebar_len) ) === FALSE ) {
+                if ( strlen( $buffer ) <= $start_of_sidebar_len
+                    || ( $offset = strpos( $buffer, START_OF_SIDEBAR, $offset + $start_of_sidebar_len) ) === FALSE ) {
                     break;
                 }
             }
