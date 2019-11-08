@@ -36,6 +36,8 @@ namespace mc_html_parser {
                 return $offset;
             }
         }
+        error_log( 'ERROR:\mc_html_parser\get_greater_than():Cannot find \'>\'' );
+        error_log( 'ERROR:\mc_html_parser\get_greater_than():The buffer begins with: "' . substr( $buffer, $offset, 64 ) . '..."' );
         return FALSE;
     };
     function get_end_tag( $tag, $buffer, $offset, $length ) {

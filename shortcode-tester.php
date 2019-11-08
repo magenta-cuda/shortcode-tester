@@ -184,10 +184,13 @@ namespace mc_shortcode_tester {
             $right_offset = \mc_html_parser\get_name( $buffer, $left_offset + 1, $length );
             $name         = substr( $buffer, $left_offset + 1, $right_offset - $left_offset );
             # error_log( 'hide_html_elements():$name=' . $name );
+            if ( ( $gt_offset = \mc_html_parser\get_greater_than( $buffer, $right_offset + 1, $length ) ) === FALSE ) {
+                error_log( 'ERROR:hide_html_elements():Cannot find matching \'>\' for tag beginning with "' . substr( $buffer, $left_offset, 64 ) . '...' );
+                break;
+            }
             $marked       = FALSE;
             if ( ! in_array( $name, [ 'img', 'br', 'hr', 'p' ] ) ) {
                 # Tag <name> should have a matching end tag </name>.
-                $gt_offset = \mc_html_parser\get_greater_than( $buffer, $right_offset + 1, $length );
                 # error_log( 'hide_html_elements():...>...=' . substr( $buffer, ( $gt_offset + 1 ) - 16, 64 ) );
                 if ( ( $offset = \mc_html_parser\get_end_tag( $name, $buffer, $gt_offset + 1, $length ) ) === FALSE ) {
                     # This should only happen on malformed HTML, i.e. no matching end tag </tag>.
@@ -213,8 +216,10 @@ namespace mc_shortcode_tester {
                         # TODO: But, the only sibling seems to be the title which can be easily removed in another way.
                     }
                 }
+            } else {   # if ( ! in_array( $name, [ 'img', 'br', 'hr', 'p' ] ) ) {
+                $offset = $gt_offset;
             }
-            if ( ! $marked && ! in_array( $name, [ 'script', 'br', 'hr' ] ) ) {
+            if ( ! $marked && ! in_array( $name, [ 'script' ] ) ) {
                 # Add element to list of elements to hide.
                 $elements[ ] = (object) [ 'name' => $name, 'left' => $left_offset, 'right' => $gt_offset ];
             }
@@ -237,8 +242,9 @@ namespace mc_shortcode_tester {
 
     $handle_output_buffering = function( $buffer, $caller, &$ob_state_stack ) {
         $ob_state = end( $ob_state_stack );
-        error_log( 'handle_output_buffering():         $caller = ' . $caller );
-        error_log( 'handle_output_buffering():$ob_state->ender = ' . ( $ob_state->ender !== NULL ? $ob_state->ender
+        error_log( 'handle_output_buffering():          $caller = ' . $caller );
+        error_log( 'handle_output_buffering():$ob_state->caller = ' . $ob_state->caller );
+        error_log( 'handle_output_buffering():$ob_state->ender  = ' . ( $ob_state->ender !== NULL ? $ob_state->ender
                                                                                                  : 'end of execution' ) );
         # error_log( 'handle_output_buffering():$buffer=' . "\n#####\n" . $buffer . "\n#####" );
         $hide_html_elements   = Output_Buffering_State::$hide_html_elements;
@@ -257,6 +263,8 @@ namespace mc_shortcode_tester {
             $buffer = $hide_html_elements( $buffer, 0, $sidebar_offset !== FALSE ? $sidebar_offset
                                                : ( $footer_offset !== FALSE ? $footer_offset : strlen( $buffer ) ),
                                            START_OF_CONTENT, TRUE );
+/*
+ * Sidebars are now cleaned in an earlier call to ob_flush().
             $offset = 0;
             # N.B. There may be multiple sidebars.
             while ( ( $offset = strpos( $buffer, START_OF_SIDEBAR, $offset ) ) !== FALSE ) {
@@ -266,9 +274,11 @@ namespace mc_shortcode_tester {
                                                    : ( $footer_offset !== FALSE ? $footer_offset : strlen( $buffer ) ) );
                 $offset += $start_of_sidebar_len;
             }
-            if ( ( $offset = strpos( $buffer, START_OF_FOOTER ) ) !== FALSE ) {
-                $buffer = $hide_html_elements( $buffer, $offset + strlen( START_OF_FOOTER ), strlen( $buffer ) );
-            }
+ */
+            # This buffer should no longer contain a footer.
+            # if ( ( $offset = strpos( $buffer, START_OF_FOOTER ) ) !== FALSE ) {
+            #     $buffer = $hide_html_elements( $buffer, $offset + strlen( START_OF_FOOTER ), strlen( $buffer ) );
+            # }
             # error_log( 'handle_output_buffering():$caller=' . $caller );
             # error_log( 'handle_output_buffering():$return=' . "\n#####\n" . $buffer . "\n#####" );
         } else if ( $caller === 'get_sidebar' ) {
@@ -276,21 +286,29 @@ namespace mc_shortcode_tester {
                 error_log( 'ERROR:handle_output_buffering():unexpected start of sidebar buffer, probably mismatched nested ob_start() output buffers.' );
                 error_log( 'ERROR:handle_output_buffering():$buffer = "' . substr( $buffer, 64 ) );
             }
-            $offset = 0;
+            $start_offset = 0;
             # N.B. There may be multiple sidebars.
             while ( TRUE ) {
-                $sidebar_offset = strpos( $buffer, START_OF_SIDEBAR, $offset + $start_of_sidebar_len );
-                $footer_offset  = strpos( $buffer, START_OF_FOOTER,  $offset + $start_of_sidebar_len );
-                $buffer = $hide_html_elements( $buffer, $offset, $sidebar_offset !== FALSE ? $sidebar_offset
-                                                   : ( $footer_offset !== FALSE ? $footer_offset : strlen( $buffer ) ) );
+                error_log( 'handle_output_buffering():$start_offset = ' . $start_offset );
+                $sidebar_offset = strpos( $buffer, START_OF_SIDEBAR, $start_offset + $start_of_sidebar_len );
+                $content_offset = strpos( $buffer, START_OF_CONTENT, $start_offset + $start_of_sidebar_len );
+                $footer_offset  = strpos( $buffer, START_OF_FOOTER,  $start_offset + $start_of_sidebar_len );
+                $end_offset     = strlen( $buffer );
+                foreach ( [ $sidebar_offset, $content_offset, $footer_offset ] as $offset ) {
+                    if ( $offset !== FALSE  && $offset < $end_offset ) {
+                        $end_offset = $offset;
+                    }
+                }
+                $buffer = $hide_html_elements( $buffer, $start_offset, $end_offset, NULL, TRUE );
                 if ( strlen( $buffer ) <= $start_of_sidebar_len
-                    || ( $offset = strpos( $buffer, START_OF_SIDEBAR, $offset + $start_of_sidebar_len) ) === FALSE ) {
+                    || ( $start_offset = strpos( $buffer, START_OF_SIDEBAR, $start_offset + $start_of_sidebar_len ) ) === FALSE ) {
                     break;
                 }
             }
-            if ( ( $offset = strpos( $buffer, START_OF_FOOTER ) ) !== FALSE ) {
-                $buffer = $hide_html_elements( $buffer, $offset + start_of_footer_len, strlen( $buffer ) );
-            }
+            # This buffer should no longer contain a footer.
+            # if ( ( $offset = strpos( $buffer, START_OF_FOOTER ) ) !== FALSE ) {
+            #     $buffer = $hide_html_elements( $buffer, $offset + start_of_footer_len, strlen( $buffer ) );
+            # }
         } else if ( $caller === 'get_footer' ) {
             if ( strpos( $buffer, START_OF_FOOTER ) !== 0 ) {
                 error_log( 'ERROR:handle_output_buffering():unexpected start of footer buffer, probably mismatched nested ob_start() output buffers.' );
@@ -353,11 +371,16 @@ namespace mc_shortcode_tester {
         }, PHP_INT_MAX );
  */
         add_action( 'loop_end', function( &$query ) use ( &$ob_state_stack ) {
-            $ob_state = empty( $ob_state_stack ) ? NULL : end( $ob_state_stack );
-            if ( ! is_null( $ob_state ) && $ob_state->on && ob_get_level( ) === $ob_state->level ) {
-                # error_log( 'ACTION:loop_end():ob_end_flush()' );
-                $ob_state->ender = 'loop_end';
-                ob_end_flush( );
+            while ( TRUE ) {
+                $ob_state = empty( $ob_state_stack ) ? NULL : end( $ob_state_stack );
+                if ( ! is_null( $ob_state ) && $ob_state->on && ob_get_level( ) === $ob_state->level ) {
+                    # Clean previously emitted content and left sidebars.
+                    # error_log( 'ACTION:loop_end():ob_end_flush()' );
+                    $ob_state->ender = 'loop_end';
+                    ob_end_flush( );
+                } else {
+                    break;
+                }
             }
             # echo "<!-- ##### ACTION:loop_end -->\n";
         }, 10, 1 );
@@ -391,29 +414,32 @@ namespace mc_shortcode_tester {
         }
  */
         add_action( 'get_sidebar', function ( $name ) use ( &$ob_state_stack ) {
-            # error_log( 'ACTION:get_sidebar():' );
+            error_log( 'ACTION:get_sidebar():' );
             $ob_state = empty( $ob_state_stack ) ? NULL : end( $ob_state_stack );
-            if ( ! is_null( $ob_state ) && $ob_state->on && ob_get_level( ) === $ob_state->level ) {
+            if ( ! is_null( $ob_state ) && $ob_state->on && ob_get_level( ) === $ob_state->level && $ob_state->caller === 'get_sidebar' ) {
+                # Clean only a previously emitted sidebar.
                 # error_log( 'ACTION:get_sidebar():ob_end_flush()' );
                 $ob_state->ender = 'get_sidebar';
                 ob_end_flush( );
             }
-            $ob_state = empty( $ob_state_stack ) ? NULL : end( $ob_state_stack );
-            if ( is_null( $ob_state ) || ! $ob_state->on ) {
-                ob_start( function( $buffer ) use ( &$ob_state_stack ) {
-                    $handle_output_buffering = Output_Buffering_State::$handle_output_buffering;
-                    return $handle_output_buffering( $buffer, 'get_sidebar', $ob_state_stack );
-                } );
-                array_push( $ob_state_stack, new Output_Buffering_State( 'get_sidebar' ) );
-                echo START_OF_SIDEBAR . "\n";
-            }
+            ob_start( function( $buffer ) use ( &$ob_state_stack ) {
+                $handle_output_buffering = Output_Buffering_State::$handle_output_buffering;
+                return $handle_output_buffering( $buffer, 'get_sidebar', $ob_state_stack );
+            } );
+            array_push( $ob_state_stack, new Output_Buffering_State( 'get_sidebar' ) );
+            echo START_OF_SIDEBAR . "\n";
         } );
         add_action( 'get_footer', function ( $name ) use ( &$ob_state_stack ) {
-            $ob_state = empty( $ob_state_stack ) ? NULL : end( $ob_state_stack );
-            if ( ! is_null( $ob_state ) && $ob_state->on && ob_get_level( ) === $ob_state->level ) {
-                # error_log( 'ACTION:get_footer():ob_end_flush()' );
-                $ob_state->ender = 'get_footer';
-                ob_end_flush( );
+            while ( TRUE ) {
+                $ob_state = empty( $ob_state_stack ) ? NULL : end( $ob_state_stack );
+                if ( ! is_null( $ob_state ) && $ob_state->on && ob_get_level( ) === $ob_state->level ) {
+                    # Clean previously emitted content and right sidebars (content should have been handled by ACTION 'loop_end').
+                    # error_log( 'ACTION:get_footer():ob_end_flush()' );
+                    $ob_state->ender = 'get_footer';
+                    ob_end_flush( );
+                } else {
+                    break;
+                }
             }
             $ob_state = empty( $ob_state_stack ) ? NULL : end( $ob_state_stack );
             if ( is_null( $ob_state ) || ! $ob_state->on ) {
