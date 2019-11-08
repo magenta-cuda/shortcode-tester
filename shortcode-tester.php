@@ -241,15 +241,15 @@ namespace mc_shortcode_tester {
     };
 
     $handle_output_buffering = function( $buffer, $caller, &$ob_state_stack ) {
-        $ob_state = end( $ob_state_stack );
-        error_log( 'handle_output_buffering():          $caller = ' . $caller );
-        error_log( 'handle_output_buffering():$ob_state->caller = ' . $ob_state->caller );
-        error_log( 'handle_output_buffering():$ob_state->ender  = ' . ( $ob_state->ender !== NULL ? $ob_state->ender
-                                                                                                 : 'end of execution' ) );
-        # error_log( 'handle_output_buffering():$buffer=' . "\n#####\n" . $buffer . "\n#####" );
+        $ob_state             = end( $ob_state_stack );
         $hide_html_elements   = Output_Buffering_State::$hide_html_elements;
         $start_of_sidebar_len = strlen( START_OF_SIDEBAR );
         $start_of_footer_len  = strlen( START_OF_FOOTER );
+        # error_log( 'handle_output_buffering():          $caller = ' . $caller );
+        # error_log( 'handle_output_buffering():$ob_state->caller = ' . $ob_state->caller );
+        # error_log( 'handle_output_buffering():$ob_state->ender  = ' . ( $ob_state->ender !== NULL ? $ob_state->ender
+        #                                                                                           : 'end of execution' ) );
+        # error_log( 'handle_output_buffering():$buffer=' . "\n#####\n" . $buffer . "\n#####" );
         if ( $caller === 'wp_body_open' ) {
             # ob_end_flush() can be called from multiple hooks - loop_end, get_sidebar, get_footer - or at the end of execution.
             # Hence, the buffer may or may not contain sidebars and/or the footer.
@@ -289,7 +289,6 @@ namespace mc_shortcode_tester {
             $start_offset = 0;
             # N.B. There may be multiple sidebars.
             while ( TRUE ) {
-                error_log( 'handle_output_buffering():$start_offset = ' . $start_offset );
                 $sidebar_offset = strpos( $buffer, START_OF_SIDEBAR, $start_offset + $start_of_sidebar_len );
                 $content_offset = strpos( $buffer, START_OF_CONTENT, $start_offset + $start_of_sidebar_len );
                 $footer_offset  = strpos( $buffer, START_OF_FOOTER,  $start_offset + $start_of_sidebar_len );
@@ -338,7 +337,7 @@ namespace mc_shortcode_tester {
     Output_Buffering_State::$handle_output_buffering = $handle_output_buffering;
     Output_Buffering_State::$hide_html_elements      = $hide_html_elements;
 
-   # $alt_template_redirect( ) will monitor template processing
+   # $alt_template_redirect( ) will try to hide all HTML elements in the post content except the elements containing the mark.
 
     $alt_template_redirect = function( ) {
         # Using PHP's output buffering can be tricky since they can easily be incorrectly nested.
@@ -414,7 +413,7 @@ namespace mc_shortcode_tester {
         }
  */
         add_action( 'get_sidebar', function ( $name ) use ( &$ob_state_stack ) {
-            error_log( 'ACTION:get_sidebar():' );
+            # error_log( 'ACTION:get_sidebar():' );
             $ob_state = empty( $ob_state_stack ) ? NULL : end( $ob_state_stack );
             if ( ! is_null( $ob_state ) && $ob_state->on && ob_get_level( ) === $ob_state->level && $ob_state->caller === 'get_sidebar' ) {
                 # Clean only a previously emitted sidebar.
