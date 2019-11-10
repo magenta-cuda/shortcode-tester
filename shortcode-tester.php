@@ -362,7 +362,7 @@ namespace mc_shortcode_tester {
             # Insert the mark into the post content and replace $content with $_REQUEST['post_content'].
             # This will evaluate $_REQUEST['post_content'] in the context of the post specified by the URL.
             # error_log( 'FILTER:the_content():$_REQUEST["post_content"] = ' . $_REQUEST['post_content'] );
-            return START_OF_CONTENT . "\n" . $_REQUEST['post_content'];
+            return START_OF_CONTENT . "\n" . stripslashes( $_REQUEST['post_content'] );
         }, 1 );
 /*
         add_filter( 'the_content', function( $content ) {

@@ -35,6 +35,13 @@ jQuery(document).ready(function(){
         var url=permalink[0].href;
         var source=jQuery("div#mf2tk-shortcode-tester div#mf2tk-shortcode-tester-area-source textarea").val();
         if(this.id==="mf2tk-shortcode-tester-show-rendered"){
+            var width=640;
+            var height=480;
+            var left=window.screen.width/2-width/2;
+            var top=window.screen.height/2-height/2;
+            var features="left="+left+",top="+top+",width="+width+",height="+height+",location=0,resizable,scrollbars,menubar=0";
+            url+="?mc-sct=tpcti_html_eval_post_content&post_content="+encodeURI(source);
+            window.open(url,"mc-sct-rendered",features);
             return;
         }
         var prettify=this.id==="mf2tk-shortcode-tester-evaluate-and-prettify";
