@@ -233,11 +233,11 @@ namespace mc_shortcode_tester {
                         # Remove siblings of marked.
                         error_log( 'hide_html_elements(): substr( $buffer, $offset - 8, 16 ) = ' . substr( $buffer, $offset - 8, 16 ) );
                         error_log( 'hide_html_elements(): substr( $buffer, $length - 16, 16 ) = ' . substr( $buffer, $length - 16, 16 ) );
-                        $hide_html_elements = Output_Buffering_State::$hide_html_elements;
-                        \mc_debug_utilities\print_r( $hide_html_elements, '$hide_html_elements' );
                         $buffer_length = strlen( $buffer );
-                        $buffer = $hide_html_elements->call( new \mc_shortcode_tester\Null_(), $buffer, $gt_offset + 1,
-                                                             $offset - ( strlen( $name ) + 2 ), $mark, FALSE, TRUE );
+                        $buffer = Output_Buffering_State::$hide_html_elements->call( new \mc_shortcode_tester\Null_(),
+                                                                                     $buffer, $gt_offset + 1,
+                                                                                     $offset - ( strlen( $name ) + 2 ),
+                                                                                     $mark, FALSE, TRUE );
                         # $buffer has changed so adjust $offset and $length.
                         $delta = strlen( $buffer ) - $buffer_length;
                         $offset += $delta;
@@ -293,9 +293,11 @@ namespace mc_shortcode_tester {
             $sidebar_offset = strpos( $buffer, START_OF_SIDEBAR );
             $footer_offset  = strpos( $buffer, START_OF_FOOTER );
             # $buffer contains a HTML fragment with embedded mark.
-            $buffer = $hide_html_elements( $buffer, 0, $sidebar_offset !== FALSE ? $sidebar_offset
-                                               : ( $footer_offset !== FALSE ? $footer_offset : strlen( $buffer ) ),
-                                           START_OF_CONTENT, TRUE );
+            $buffer = Output_Buffering_State::$hide_html_elements->call( new \mc_shortcode_tester\Null_(),
+                          $buffer, 0, $sidebar_offset !== FALSE ? $sidebar_offset
+                                                                : ( $footer_offset !== FALSE ? $footer_offset
+                                                                                             : strlen( $buffer ) ),
+                          START_OF_CONTENT, TRUE );
 /*
  * Sidebars are now cleaned in an earlier call to ob_flush().
             $offset = 0;
@@ -331,7 +333,8 @@ namespace mc_shortcode_tester {
                         $end_offset = $offset;
                     }
                 }
-                $buffer = $hide_html_elements( $buffer, $start_offset, $end_offset, NULL, TRUE );
+                $buffer = Output_Buffering_State::$hide_html_elements->call( new \mc_shortcode_tester\Null_(),
+                                                                             $buffer, $start_offset, $end_offset, NULL, TRUE );
                 if ( strlen( $buffer ) <= $start_of_sidebar_len
                     || ( $start_offset = strpos( $buffer, START_OF_SIDEBAR, $start_offset + $start_of_sidebar_len ) ) === FALSE ) {
                     break;
@@ -346,7 +349,7 @@ namespace mc_shortcode_tester {
                 error_log( 'ERROR:handle_output_buffering():unexpected start of footer buffer, probably mismatched nested ob_start() output buffers.' );
                 error_log( 'ERROR:handle_output_buffering():$buffer = "' . substr( $buffer, 64 ) );
             }
-            $buffer = $hide_html_elements( $buffer, 0, strlen( $buffer ) );
+            $buffer = Output_Buffering_State::$hide_html_elements->call( new \mc_shortcode_tester\Null_(), $buffer, 0, strlen( $buffer ) );
         }
         # Reset $ob_state.
         array_pop( $ob_state_stack );
