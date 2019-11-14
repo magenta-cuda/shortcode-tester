@@ -35,6 +35,10 @@ namespace mc_shortcode_tester {
         
     require_once( 'parse-functions.php' );
 
+# TODO: Following needed for debugging only, remove for production.
+
+    require_once( 'debug_utilities.php' );
+
     define( 'START_OF_BODY',    '<!-- ##### ACTION:wp_body_open -->' );
     define( 'START_OF_CONTENT', '<!-- ##### FILTER:the_content -->' );   # This is the mark.
     define( 'START_OF_SIDEBAR', '<!-- ##### ACTION:get_sidebar -->' );
@@ -165,14 +169,20 @@ namespace mc_shortcode_tester {
             
     };   # $construct = function( ) {
 
+    class Null_ {
+    }
+
     # hide_html_elements() hides top level HTML elements if the HTML element does not contain the mark.
 
-    $hide_html_elements = function( $buffer, $start, $length, $mark = NULL, $is_fragment = FALSE ) {
-        $elements = [ ];
-        $n        = 0;
-        # error_log( 'hide_html_elements():$length=' . $length );
-        # error_log( 'hide_html_elements():substr( $buffer, $length - 16 ) = ' . substr( $buffer, $length - 16 ) );
+    $hide_html_elements = function( $buffer, $start, $length, $mark = NULL, $is_fragment = FALSE, $contains_mark = FALSE ) {
+        error_log( 'hide_html_elements():entry:substr( $buffer, $start, $length - $start ) = ### entry start ###'
+                       . substr( $buffer, $start, $length - $start ) . '### entry end ###' );
+        $elements       = [ ];
+        $n              = 0;
+        $parent_of_mark = $contains_mark;
         while ( ( $left_offset = \mc_html_parser\get_start_tag( $buffer, $start, $length ) ) !== FALSE ) {
+            error_log( 'hide_html_elements():while:substr( $buffer, $start, $length - $start ) = ### while start ###'
+                           . substr( $buffer, $start, $length - $start ) . '### while end ###' );
             if ( ++$n > 1024 ) {
                 # This should not happen. If it does probably a programming error causing an infinite loop.
                 error_log( 'ERROR:hide_html_elements():Probably in an infinite loop.' );
@@ -203,17 +213,31 @@ namespace mc_shortcode_tester {
                         continue;
                     }
                     error_log( 'ERROR:hide_html_elements():Cannot find matching end tag "</' . $name . '>".' );
-                    error_log( 'ERROR:hide_html_elements(): HTML element begins with: "' . substr( $buffer, $left_offset, 64 ) . '..."' );
+                    error_log( 'ERROR:hide_html_elements():HTML element begins with: "' . substr( $buffer, $left_offset, 64 ) . '..."' );
+                    error_log( 'ERROR:hide_html_elements():buffer = #####' . substr( $buffer, $gt_offset + 1, $length - ( $gt_offset + 1 ) ) . '#####' );
                     return FALSE;
                 }
                 # error_log( 'hide_html_elements():</tag>...=' . substr( $buffer, ( $offset + 1 ) - 16, 64 ) );
                 if ( ! is_null( $mark ) ) {
-                    # error_log( 'hide_html_elements():innerHTML = #####'
-                    #     . substr( $buffer, $gt_offset + 1, ( $offset - ( strlen( $name ) + 1 ) ) - ( $gt_offset + 1 ) ) . '#####' );
-                    if ( ( $marked = strpos( substr( $buffer, $gt_offset + 1, ( $offset - ( strlen( $name ) + 1 ) ) - ( $gt_offset + 1 ) ), $mark ) )
+                    error_log( 'hide_html_elements():innerHTML = ### inner start ###'
+                        . substr( $buffer, $gt_offset + 1, ( $offset - ( strlen( $name ) + 2 ) ) - ( $gt_offset + 1 ) ) . '### inner end ###' );
+                    if ( ( $marked = strpos( substr( $buffer, $gt_offset + 1, ( $offset - ( strlen( $name ) + 2 ) ) - ( $gt_offset + 1 ) ), $mark ) )
                             !== FALSE ) {
-                        # TODO: Should also remove siblings of marked.
-                        # TODO: But, the only sibling seems to be the title which can be easily removed in another way.
+                        $parent_of_mark = FALSE;
+                        # Remove siblings of marked.
+                        error_log( 'hide_html_elements(): substr( $buffer, $offset - 8, 16 ) = ' . substr( $buffer, $offset - 8, 16 ) );
+                        error_log( 'hide_html_elements(): substr( $buffer, $length - 16, 16 ) = ' . substr( $buffer, $length - 16, 16 ) );
+                        $hide_html_elements = Output_Buffering_State::$hide_html_elements;
+                        \mc_debug_utilities\print_r( $hide_html_elements, '$hide_html_elements' );
+                        $buffer_length = strlen( $buffer );
+                        $buffer = $hide_html_elements->call( new \mc_shortcode_tester\Null_(), $buffer, $gt_offset + 1,
+                                                             $offset - ( strlen( $name ) + 2 ), $mark, FALSE, TRUE );
+                        # $buffer has changed so adjust $offset and $length.
+                        $delta = strlen( $buffer ) - $buffer_length;
+                        $offset += $delta;
+                        $length += $delta;
+                        error_log( 'hide_html_elements(): substr( $buffer, $offset - 8, 16 ) = ' . substr( $buffer, $offset - 8, 16 ) );
+                        error_log( 'hide_html_elements(): substr( $buffer, $length - 16, 16 ) = ' . substr( $buffer, $length - 16, 16 ) );
                     }
                 }
             } else {   # if ( ! in_array( $name, [ 'img', 'br', 'hr', 'p' ] ) ) {
@@ -224,6 +248,9 @@ namespace mc_shortcode_tester {
                 $elements[ ] = (object) [ 'name' => $name, 'left' => $left_offset, 'right' => $gt_offset ];
             }
             $start = $offset + 1;
+        }   # while ( ( $left_offset = \mc_html_parser\get_start_tag( $buffer, $start, $length ) ) !== FALSE ) {
+        if ( $contains_mark && $parent_of_mark ) {
+            return $buffer;
         }
         # Hide elements in reverse order so previous offsets are preserved.
         foreach ( array_reverse( $elements ) as $element ) {
@@ -245,11 +272,11 @@ namespace mc_shortcode_tester {
         $hide_html_elements   = Output_Buffering_State::$hide_html_elements;
         $start_of_sidebar_len = strlen( START_OF_SIDEBAR );
         $start_of_footer_len  = strlen( START_OF_FOOTER );
-        # error_log( 'handle_output_buffering():          $caller = ' . $caller );
-        # error_log( 'handle_output_buffering():$ob_state->caller = ' . $ob_state->caller );
-        # error_log( 'handle_output_buffering():$ob_state->ender  = ' . ( $ob_state->ender !== NULL ? $ob_state->ender
-        #                                                                                           : 'end of execution' ) );
-        # error_log( 'handle_output_buffering():$buffer=' . "\n#####\n" . $buffer . "\n#####" );
+        error_log( 'handle_output_buffering():          $caller = ' . $caller );
+        error_log( 'handle_output_buffering():$ob_state->caller = ' . $ob_state->caller );
+        error_log( 'handle_output_buffering():$ob_state->ender  = ' . ( $ob_state->ender !== NULL ? $ob_state->ender
+                                                                                                  : 'end of execution' ) );
+        error_log( 'handle_output_buffering():$buffer=' . "\n#####\n" . $buffer . "\n#####" );
         if ( $caller === 'wp_body_open' ) {
             # ob_end_flush() can be called from multiple hooks - loop_end, get_sidebar, get_footer - or at the end of execution.
             # Hence, the buffer may or may not contain sidebars and/or the footer.
@@ -336,6 +363,9 @@ namespace mc_shortcode_tester {
     }
     Output_Buffering_State::$handle_output_buffering = $handle_output_buffering;
     Output_Buffering_State::$hide_html_elements      = $hide_html_elements;
+
+    error_log( 'Output_Buffering_State::$hide_html_elements=' . print_r( Output_Buffering_State::$hide_html_elements, true ) );
+    \mc_debug_utilities\print_r( Output_Buffering_State::$hide_html_elements, 'Output_Buffering_State::$hide_html_elements' );
 
    # $alt_template_redirect( ) will try to hide all HTML elements in the post content except the elements containing the mark.
 
