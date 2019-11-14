@@ -172,6 +172,12 @@ namespace mc_shortcode_tester {
     class Null_ {
     }
 
+    # Using PHP's output buffering can be tricky since they can easily be incorrectly nested.
+    # We must call ob_end_flush() only after all calls to ob_start() after our ob_start() have been matched.
+    # $ob_state will have the state of our output buffering and have references to our output buffering handlers.
+
+    $ob_state_stack = [ ];
+
     # hide_html_elements() hides top level HTML elements if the HTML element does not contain the mark.
 
     $hide_html_elements = function( $buffer, $start, $length, $mark = NULL, $is_fragment = FALSE, $contains_mark = FALSE ) {
@@ -267,7 +273,7 @@ namespace mc_shortcode_tester {
         return $buffer;
     };
 
-    $handle_output_buffering = function( $buffer, $caller, &$ob_state_stack ) {
+    $handle_output_buffering = function( $buffer, $caller ) use ( &$ob_state_stack ) {
         $ob_state             = end( $ob_state_stack );
         $hide_html_elements   = Output_Buffering_State::$hide_html_elements;
         $start_of_sidebar_len = strlen( START_OF_SIDEBAR );
@@ -370,10 +376,6 @@ namespace mc_shortcode_tester {
    # $alt_template_redirect( ) will try to hide all HTML elements in the post content except the elements containing the mark.
 
     $alt_template_redirect = function( ) {
-        # Using PHP's output buffering can be tricky since they can easily be incorrectly nested.
-        # We must call ob_end_flush() only after all calls to ob_start() after our ob_start() have been matched.
-        # $ob_state will have the state of our output buffering and have references to our output buffering handlers.
-        $ob_state_stack = [ ];
 /*
         add_action( 'get_header', function ( $name ) {
             echo "<!-- ##### ACTION:get_header -->\n";
@@ -413,10 +415,10 @@ namespace mc_shortcode_tester {
             }
             # echo "<!-- ##### ACTION:loop_end -->\n";
         }, 10, 1 );
-        add_action( 'wp_body_open', function( ) use ( &$ob_state_stack ) {
-            ob_start( function( $buffer ) use ( &$ob_state_stack ) {
-                $handle_output_buffering = Output_Buffering_State::$handle_output_buffering;
-                return $handle_output_buffering( $buffer, 'wp_body_open', $ob_state_stack );
+        add_action( 'wp_body_open', function( ) {
+            ob_start( function( $buffer ) {
+                return Output_Buffering_State::$handle_output_buffering->call( new \mc_shortcode_tester\Null_(),
+                                                                               $buffer, 'wp_body_open' );
             } );
             array_push( $ob_state_stack, new Output_Buffering_State( 'wp_body_open' ) );
             echo START_OF_BODY . "\n";
@@ -451,9 +453,9 @@ namespace mc_shortcode_tester {
                 $ob_state->ender = 'get_sidebar';
                 ob_end_flush( );
             }
-            ob_start( function( $buffer ) use ( &$ob_state_stack ) {
-                $handle_output_buffering = Output_Buffering_State::$handle_output_buffering;
-                return $handle_output_buffering( $buffer, 'get_sidebar', $ob_state_stack );
+            ob_start( function( $buffer ) {
+                return Output_Buffering_State::$handle_output_buffering->call( new \mc_shortcode_tester\Null_(),
+                                                                               $buffer, 'get_sidebar' );
             } );
             array_push( $ob_state_stack, new Output_Buffering_State( 'get_sidebar' ) );
             echo START_OF_SIDEBAR . "\n";
@@ -472,9 +474,9 @@ namespace mc_shortcode_tester {
             }
             $ob_state = empty( $ob_state_stack ) ? NULL : end( $ob_state_stack );
             if ( is_null( $ob_state ) || ! $ob_state->on ) {
-                ob_start( function( $buffer ) use ( &$ob_state_stack ) {
-                    $handle_output_buffering = Output_Buffering_State::$handle_output_buffering;
-                    return $handle_output_buffering( $buffer, 'get_footer', $ob_state_stack );
+                ob_start( function( $buffer ) {
+                    return Output_Buffering_State::$handle_output_buffering->call( new \mc_shortcode_tester\Null_(),
+                                                                                   $buffer, 'get_footer', $ob_state_stack );
                } );
                 array_push( $ob_state_stack, new Output_Buffering_State( 'get_footer' ) );
                 echo START_OF_FOOTER . "\n";
