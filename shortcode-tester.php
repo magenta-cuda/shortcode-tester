@@ -44,7 +44,7 @@ namespace mc_shortcode_tester {
     define( 'START_OF_SIDEBAR', '<!-- ##### ACTION:get_sidebar -->' );
     define( 'START_OF_FOOTER',  '<!-- ##### ACTION:get_footer -->' );
 
-    error_log( '\mc_shortcode_tester:$_GET=' . print_r( $_GET, TRUE ) );
+    # error_log( '\mc_shortcode_tester:$_GET=' . print_r( $_GET, TRUE ) );
 
     $construct = function( ) {
 
@@ -171,6 +171,8 @@ namespace mc_shortcode_tester {
             
     };   # $construct = function( ) {
 
+    # The call method of a Closure object requires an object as its first argument - Null_ is used for this.
+
     class Null_ {
     }
 
@@ -185,9 +187,11 @@ namespace mc_shortcode_tester {
     $hide_html_elements = function( $buffer, $start, $length, $mark = NULL, $is_fragment = FALSE, $contains_mark = FALSE ) {
         error_log( 'hide_html_elements():entry:substr( $buffer, $start, $length - $start ) = ### entry start ###'
                        . substr( $buffer, $start, $length - $start ) . '### entry end ###' );
+        static $depth   = 0;
         $elements       = [ ];
         $n              = 0;
         $parent_of_mark = $contains_mark;
+        ++$depth;
         while ( ( $left_offset = \mc_html_parser\get_start_tag( $buffer, $start, $length ) ) !== FALSE ) {
             error_log( 'hide_html_elements():while:substr( $buffer, $start, $length - $start ) = ### while start ###'
                            . substr( $buffer, $start, $length - $start ) . '### while end ###' );
@@ -233,8 +237,8 @@ namespace mc_shortcode_tester {
                             !== FALSE ) {
                         $parent_of_mark = FALSE;
                         # Remove siblings of marked.
-                        error_log( 'hide_html_elements(): substr( $buffer, $offset - 8, 16 ) = ' . substr( $buffer, $offset - 8, 16 ) );
-                        error_log( 'hide_html_elements(): substr( $buffer, $length - 16, 16 ) = ' . substr( $buffer, $length - 16, 16 ) );
+                        error_log( 'hide_html_elements(): substr( $buffer, $offset - 8, 16 ) = [' . $depth . ']' . substr( $buffer, $offset - 8, 16 ) );
+                        error_log( 'hide_html_elements(): substr( $buffer, $length - 16, 16 ) = [' . $depth . ']' . substr( $buffer, $length - 16, 16 ) );
                         $buffer_length = strlen( $buffer );
                         $buffer = Output_Buffering_State::$hide_html_elements->call( new \mc_shortcode_tester\Null_(),
                                                                                      $buffer, $gt_offset + 1,
@@ -244,8 +248,8 @@ namespace mc_shortcode_tester {
                         $delta = strlen( $buffer ) - $buffer_length;
                         $offset += $delta;
                         $length += $delta;
-                        error_log( 'hide_html_elements(): substr( $buffer, $offset - 8, 16 ) = ' . substr( $buffer, $offset - 8, 16 ) );
-                        error_log( 'hide_html_elements(): substr( $buffer, $length - 16, 16 ) = ' . substr( $buffer, $length - 16, 16 ) );
+                        error_log( 'hide_html_elements(): substr( $buffer, $offset - 8, 16 ) = [' .$depth . ']' . substr( $buffer, $offset - 8, 16 ) );
+                        error_log( 'hide_html_elements(): substr( $buffer, $length - 16, 16 ) = [' .$depth . ']' . substr( $buffer, $length - 16, 16 ) );
                     }
                 }
             } else {   # if ( ! in_array( $name, [ 'img', 'br', 'hr', 'p' ] ) ) {
@@ -258,6 +262,7 @@ namespace mc_shortcode_tester {
             $start = $offset + 1;
         }   # while ( ( $left_offset = \mc_html_parser\get_start_tag( $buffer, $start, $length ) ) !== FALSE ) {
         if ( $contains_mark && $parent_of_mark ) {
+            --$depth;
             return $buffer;
         }
         # Hide elements in reverse order so previous offsets are preserved.
@@ -272,6 +277,7 @@ namespace mc_shortcode_tester {
             }
         }
         # error_log( 'hide_html_elements():return=' . "\n#####\n" . $buffer . "/n#####" );
+        --$depth;
         return $buffer;
     };
 
@@ -375,12 +381,12 @@ namespace mc_shortcode_tester {
     Output_Buffering_State::$handle_output_buffering = $handle_output_buffering;
     Output_Buffering_State::$hide_html_elements      = $hide_html_elements;
 
-    error_log( 'Output_Buffering_State::$hide_html_elements=' . print_r( Output_Buffering_State::$hide_html_elements, true ) );
-    \mc_debug_utilities\print_r( Output_Buffering_State::$hide_html_elements, 'Output_Buffering_State::$hide_html_elements' );
+    # error_log( 'Output_Buffering_State::$hide_html_elements=' . print_r( Output_Buffering_State::$hide_html_elements, true ) );
+    # \mc_debug_utilities\print_r( Output_Buffering_State::$hide_html_elements, 'Output_Buffering_State::$hide_html_elements' );
 
-   # $alt_template_redirect( ) will try to hide all HTML elements in the post content except the elements containing the mark.
+    # $alt_template_redirect( ) will try to hide all HTML elements in the post content except the elements containing the mark.
 
-    $alt_template_redirect = function( ) {
+    $alt_template_redirect = function( ) use ( &$ob_state_stack ) {
 /*
         add_action( 'get_header', function ( $name ) {
             echo "<!-- ##### ACTION:get_header -->\n";
@@ -420,7 +426,7 @@ namespace mc_shortcode_tester {
             }
             # echo "<!-- ##### ACTION:loop_end -->\n";
         }, 10, 1 );
-        add_action( 'wp_body_open', function( ) {
+        add_action( 'wp_body_open', function( ) use ( &$ob_state_stack ) {
             ob_start( function( $buffer ) {
                 return Output_Buffering_State::$handle_output_buffering->call( new \mc_shortcode_tester\Null_(),
                                                                                $buffer, 'wp_body_open' );
