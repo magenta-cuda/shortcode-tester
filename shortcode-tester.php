@@ -487,7 +487,7 @@ namespace mc_shortcode_tester {
             if ( is_null( $ob_state ) || ! $ob_state->on ) {
                 ob_start( function( $buffer ) {
                     return Output_Buffering_State::$handle_output_buffering->call( new \mc_shortcode_tester\Null_(),
-                                                                                   $buffer, 'get_footer', $ob_state_stack );
+                                                                                   $buffer, 'get_footer' );
                } );
                 array_push( $ob_state_stack, new Output_Buffering_State( 'get_footer' ) );
                 echo START_OF_FOOTER . "\n";
