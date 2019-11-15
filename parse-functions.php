@@ -41,7 +41,6 @@ namespace mc_html_parser {
         return FALSE;
     };
     function get_end_tag( $tag, $buffer, $offset, $length ) {
-        error_log( '\mc_html_parser\get_end_tag():substr( $buffer, $length - 16, 16 ) = ' . substr( $buffer, $length - 16, 16 ) );
         if ( $tag === 'script' ) {
             # <script> elements are dangerous as they can contain strings which can contain HTML tags.
             # However, they are easier to parse as they cannot contain a nested <script> element.
@@ -85,8 +84,8 @@ namespace mc_html_parser {
                         return FALSE;
                     }
                     if ( ( $offset = get_end_tag( $inner_tag, $buffer, $gt_offset + 1, $length ) ) === FALSE ) {
-                        error_log( 'ERROR:\mc_html_parser\get_end_tag():Cannot find matching end tag "</' . $inner_tag . '>".' );
-                        error_log( 'ERROR:\mc_html_parser\get_end_tag():The HTML element begins with: "' . substr( $buffer, $prev_offset, 64 ) . '..."' );
+                        # error_log( 'ERROR:\mc_html_parser\get_end_tag():Cannot find matching end tag "</' . $inner_tag . '>".' );
+                        # error_log( 'ERROR:\mc_html_parser\get_end_tag():The HTML element begins with: "' . substr( $buffer, $prev_offset, 64 ) . '..."' );
                         # If we are parsing a HTML fragment then this may not be an error as the fragment may not yet be complete.
                         # The caller should handle this possible error.
                         return FALSE;
@@ -95,9 +94,11 @@ namespace mc_html_parser {
                 }
             }
         }
-        error_log( 'ERROR:\mc_html_parser\get_end_tag():Cannot find matching end tag "</' . $tag . '>".' );
-        error_log( 'ERROR:\mc_html_parser\get_end_tag():substr( $buffer, $offset - 16, 16 ) = ' . substr( $buffer, $offset - 16, 16 ) );
-        error_log( 'ERROR:\mc_html_parser\get_end_tag():substr( $buffer, $length - 16, 16 ) = ' . substr( $buffer, $length - 16, 16 ) );
+        # error_log( 'ERROR:\mc_html_parser\get_end_tag():Cannot find matching end tag "</' . $tag . '>".' );
+        # error_log( 'ERROR:\mc_html_parser\get_end_tag():substr( $buffer, $offset - 16, 16 ) = ' . substr( $buffer, $offset - 16, 16 ) );
+        # error_log( 'ERROR:\mc_html_parser\get_end_tag():substr( $buffer, $length - 16, 16 ) = ' . substr( $buffer, $length - 16, 16 ) );
+        # If we are parsing a HTML fragment then this may not be an error as the fragment may not yet be complete.
+        # The caller should handle this possible error.
         return FALSE;
     }
 }   # namespace mc_html_parser {
