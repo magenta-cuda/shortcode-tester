@@ -44,6 +44,8 @@ namespace mc_shortcode_tester {
     define( 'START_OF_SIDEBAR', '<!-- ##### ACTION:get_sidebar -->' );
     define( 'START_OF_FOOTER',  '<!-- ##### ACTION:get_footer -->' );
 
+    error_log( '\mc_shortcode_tester:$_GET=' . print_r( $_GET, TRUE ) );
+
     $construct = function( ) {
 
         if ( !is_admin( ) ) {

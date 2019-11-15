@@ -52,6 +52,16 @@ namespace mc_html_parser {
         }
         for ( ; $offset < $length; $offset++ ) {
             # error_log( '\mc_html_parser\get_end_tag():substr( $buffer, $offset, 16 ) = ' . substr( $buffer, $offset, 16 ) );
+            # Strings are dangerous as they may contain HTML tags so find the ending delimiter.
+            if ( $buffer[ $offset ] === '"' || $buffer[ $offset ] === '\'' ) {
+                $delim = $buffer[ $offset ];
+                if ( ( $offset = strpos( $buffer, $delim, $offset + 1 ) ) === FALSE ) {
+                    error_log( 'ERROR:\mc_html_parser\get_greater_than():Cannot find matching ending ' . $delim );
+                    error_log( 'ERROR:\mc_html_parser\get_greater_than():The string attribute begins with: "' . substr( $buffer, $offset, 64 ) . '..."' );
+                    return FALSE;
+                }
+                continue;
+            }
             if ( $buffer[ $offset ] === '<' ) {
                 if ( $buffer[ $offset + 1 ] === '/' ) {
                     if ( substr_compare( $buffer, $tag, $offset + 2, strlen( $tag ) ) === 0 ) {

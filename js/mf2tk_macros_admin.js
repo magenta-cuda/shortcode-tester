@@ -33,6 +33,7 @@ jQuery(document).ready(function(){
             nonce=mf2tk_macros_admin.shortcode_tester_nonce;
         }
         var url=permalink[0].href;
+        var punc=url.indexOf("?")===-1?"?":"&";
         var source=jQuery("div#mf2tk-shortcode-tester div#mf2tk-shortcode-tester-area-source textarea").val();
         if(this.id==="mf2tk-shortcode-tester-show-rendered"){
             var width=640;
@@ -40,13 +41,13 @@ jQuery(document).ready(function(){
             var left=window.screen.width/2-width/2;
             var top=window.screen.height/2-height/2;
             var features="left="+left+",top="+top+",width="+width+",height="+height+",location=0,resizable,scrollbars,menubar=0";
-            url+="?mc-sct=tpcti_html_eval_post_content&post_content="+encodeURI(source);
+            url+=punc+"mc-sct=tpcti_html_eval_post_content&post_content="+encodeURI(source);
             window.open(url,"mc-sct-rendered",features);
             return;
         }
         var prettify=this.id==="mf2tk-shortcode-tester-evaluate-and-prettify";
         var post_id=jQuery("form#post input#post_ID[type='hidden']").val();
-        url+="?mc-sct=tpcti_eval_post_content";
+        url+=punc+"mc-sct=tpcti_eval_post_content";
         jQuery("div#mf2tk-shortcode-tester div#mf2tk-shortcode-tester-area-result textarea").val("Evaluating..., please wait...");
         // Use AJAX to request the server to evaluate the post content fragment
         // N.B. - This is not the usual WordPress .../wp-admin/adim-ajax.php AJAX request. The shortcode must be
