@@ -237,8 +237,8 @@ namespace mc_shortcode_tester {
                             !== FALSE ) {
                         $parent_of_mark = FALSE;
                         # Remove siblings of marked.
-                        error_log( 'hide_html_elements(): substr( $buffer, $offset - 8, 16 ) = [' . $depth . ']' . substr( $buffer, $offset - 8, 16 ) );
-                        error_log( 'hide_html_elements(): substr( $buffer, $length - 16, 16 ) = [' . $depth . ']' . substr( $buffer, $length - 16, 16 ) );
+                        # error_log( 'hide_html_elements(): substr( $buffer, $offset - 8, 16 ) = [' . $depth . ']' . substr( $buffer, $offset - 8, 16 ) );
+                        # error_log( 'hide_html_elements(): substr( $buffer, $length - 16, 16 ) = [' . $depth . ']' . substr( $buffer, $length - 16, 16 ) );
                         $buffer_length = strlen( $buffer );
                         $buffer = Output_Buffering_State::$hide_html_elements->call( new \mc_shortcode_tester\Null_(),
                                                                                      $buffer, $gt_offset + 1,
@@ -248,8 +248,8 @@ namespace mc_shortcode_tester {
                         $delta = strlen( $buffer ) - $buffer_length;
                         $offset += $delta;
                         $length += $delta;
-                        error_log( 'hide_html_elements(): substr( $buffer, $offset - 8, 16 ) = [' .$depth . ']' . substr( $buffer, $offset - 8, 16 ) );
-                        error_log( 'hide_html_elements(): substr( $buffer, $length - 16, 16 ) = [' .$depth . ']' . substr( $buffer, $length - 16, 16 ) );
+                        # error_log( 'hide_html_elements(): substr( $buffer, $offset - 8, 16 ) = [' .$depth . ']' . substr( $buffer, $offset - 8, 16 ) );
+                        # error_log( 'hide_html_elements(): substr( $buffer, $length - 16, 16 ) = [' .$depth . ']' . substr( $buffer, $length - 16, 16 ) );
                     }
                 }
             } else {   # if ( ! in_array( $name, [ 'img', 'br', 'hr', 'p' ] ) ) {
@@ -262,6 +262,7 @@ namespace mc_shortcode_tester {
             $start = $offset + 1;
         }   # while ( ( $left_offset = \mc_html_parser\get_start_tag( $buffer, $start, $length ) ) !== FALSE ) {
         if ( $contains_mark && $parent_of_mark ) {
+            # This container has the mark as a direct descendant.
             --$depth;
             return $buffer;
         }
@@ -286,11 +287,11 @@ namespace mc_shortcode_tester {
         $hide_html_elements   = Output_Buffering_State::$hide_html_elements;
         $start_of_sidebar_len = strlen( START_OF_SIDEBAR );
         $start_of_footer_len  = strlen( START_OF_FOOTER );
-        error_log( 'handle_output_buffering():          $caller = ' . $caller );
-        error_log( 'handle_output_buffering():$ob_state->caller = ' . $ob_state->caller );
-        error_log( 'handle_output_buffering():$ob_state->ender  = ' . ( $ob_state->ender !== NULL ? $ob_state->ender
-                                                                                                  : 'end of execution' ) );
-        error_log( 'handle_output_buffering():$buffer=' . "\n#####\n" . $buffer . "\n#####" );
+        # error_log( 'handle_output_buffering():          $caller = ' . $caller );
+        # error_log( 'handle_output_buffering():$ob_state->caller = ' . $ob_state->caller );
+        # error_log( 'handle_output_buffering():$ob_state->ender  = ' . ( $ob_state->ender !== NULL ? $ob_state->ender
+        #                                                                                           : 'end of execution' ) );
+        # error_log( 'handle_output_buffering():$buffer=' . "\n#####\n" . $buffer . "\n#####" );
         if ( $caller === 'wp_body_open' ) {
             # ob_end_flush() can be called from multiple hooks - loop_end, get_sidebar, get_footer - or at the end of execution.
             # Hence, the buffer may or may not contain sidebars and/or the footer.

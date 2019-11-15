@@ -33,7 +33,8 @@ Please visit [https://github.com/magenta-cuda/shortcode-tester/blob/master/READM
 == Changelog ==
 
 = 1.2.1 =
-* minor enhancements
+* fix problem with non permalink URL's
+* fix problem with "Show Rendered" on posts of type 'post'
 
 = 1.2 =
 * add support for Gutenberg
@@ -60,7 +61,8 @@ Please visit [https://github.com/magenta-cuda/shortcode-tester/blob/master/READM
 == Upgrade Notice ==
 
 = 1.2.1 =
-* minor enhancements
+* fix problem with non permalink URL's
+* fix problem with "Show Rendered" on posts of type 'post'
 
 = 1.2 =
 * add support for Gutenberg
