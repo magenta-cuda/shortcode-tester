@@ -40,7 +40,8 @@ namespace mc_shortcode_tester {
     require_once( 'debug_utilities.php' );
 
     define( 'START_OF_BODY',    '<!-- ##### ACTION:wp_body_open -->' );
-    define( 'START_OF_CONTENT', '<!-- ##### FILTER:the_content -->' );   # This is the mark.
+    define( 'START_OF_CONTENT', '<!-- ##### FILTER:the_content start -->' );   # This is the mark.
+    define( 'END_OF_CONTENT',   '<!-- ##### FILTER:the_content end -->' );
     define( 'START_OF_SIDEBAR', '<!-- ##### ACTION:get_sidebar -->' );
     define( 'START_OF_FOOTER',  '<!-- ##### ACTION:get_footer -->' );
 
@@ -185,16 +186,16 @@ namespace mc_shortcode_tester {
     # hide_html_elements() hides top level HTML elements if the HTML element does not contain the mark.
 
     $hide_html_elements = function( $buffer, $start, $length, $mark = NULL, $is_fragment = FALSE, $contains_mark = FALSE ) {
-        error_log( 'hide_html_elements():entry:substr( $buffer, $start, $length - $start ) = ### entry start ###'
-                       . substr( $buffer, $start, $length - $start ) . '### entry end ###' );
+        # error_log( 'hide_html_elements():entry:substr( $buffer, $start, $length - $start ) = ### entry start ###'
+        #                . substr( $buffer, $start, $length - $start ) . '### entry end ###' );
         static $depth   = 0;
         $elements       = [ ];
         $n              = 0;
         $parent_of_mark = $contains_mark;
         ++$depth;
         while ( ( $left_offset = \mc_html_parser\get_start_tag( $buffer, $start, $length ) ) !== FALSE ) {
-            error_log( 'hide_html_elements():while:substr( $buffer, $start, $length - $start ) = ### while start ###'
-                           . substr( $buffer, $start, $length - $start ) . '### while end ###' );
+            # error_log( 'hide_html_elements():while:substr( $buffer, $start, $length - $start ) = ### while start ###'
+            #                . substr( $buffer, $start, $length - $start ) . '### while end ###' );
             if ( ++$n > 1024 ) {
                 # This should not happen. If it does probably a programming error causing an infinite loop.
                 error_log( 'ERROR:hide_html_elements():Probably in an infinite loop.' );
@@ -406,13 +407,11 @@ namespace mc_shortcode_tester {
             # Insert the mark into the post content and replace $content with $_REQUEST['post_content'].
             # This will evaluate $_REQUEST['post_content'] in the context of the post specified by the URL.
             # error_log( 'FILTER:the_content():$_REQUEST["post_content"] = ' . $_REQUEST['post_content'] );
-            return START_OF_CONTENT . "\n" . stripslashes( $_REQUEST['post_content'] );
+            return '<div class="mc-sct-content">' . START_OF_CONTENT . "\n" . stripslashes( $_REQUEST['post_content'] ) . '</div>';
         }, 1 );
-/*
         add_filter( 'the_content', function( $content ) {
-            return $content;
+            return $content . "\n" . END_OF_CONTENT;
         }, PHP_INT_MAX );
- */
         add_action( 'loop_end', function( &$query ) use ( &$ob_state_stack ) {
             while ( TRUE ) {
                 $ob_state = empty( $ob_state_stack ) ? NULL : end( $ob_state_stack );
