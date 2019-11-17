@@ -190,10 +190,10 @@ namespace mc_shortcode_tester {
                               use ( &$ob_state_stack ) {
         static $depth   = 0;
         $ob_state       = end( $ob_state_stack );
-        error_log( 'hide_html_elements():$ob_state->caller = ' . $ob_state->caller );
-        error_log( 'hide_html_elements():$ob_state->ender  = ' . ( $ob_state->ender !== NULL ? $ob_state->ender : 'end of execution' ) );
-        error_log( 'hide_html_elements():entry:substr( $buffer, $start, $length - $start ) = ### entry start ###'
-                       . substr( $buffer, $start, $length - $start ) . '### entry end ###' );
+        # error_log( 'hide_html_elements():$ob_state->caller = ' . $ob_state->caller );
+        # error_log( 'hide_html_elements():$ob_state->ender  = ' . ( $ob_state->ender !== NULL ? $ob_state->ender : 'end of execution' ) );
+        # error_log( 'hide_html_elements():entry:substr( $buffer, $start, $length - $start ) = ### entry start ###'
+        #                . substr( $buffer, $start, $length - $start ) . '### entry end ###' );
         $elements       = [ ];
         $n              = 0;
         $parent_of_mark = $contains_mark;
@@ -286,6 +286,10 @@ namespace mc_shortcode_tester {
                 # Element already has an inline style attribute.
                 // TODO:
             }
+            # JavaScript can make visible elements that we have hidden. Changing an element's id may defeat this.
+            if ( ( $id_offset = strpos( substr( $buffer, $element->left, $element->right - ( $element->left - 1 ) ), 'id=' ) ) !== FALSE ) {
+                $buffer = substr_replace( $buffer, 'xxx-', $element->left + $id_offset + 4, 0 );
+            }
         }
         # error_log( 'hide_html_elements():return=' . "\n#####\n" . $buffer . "/n#####" );
         --$depth;
@@ -296,11 +300,11 @@ namespace mc_shortcode_tester {
         $ob_state             = end( $ob_state_stack );
         $start_of_sidebar_len = strlen( START_OF_SIDEBAR );
         $start_of_footer_len  = strlen( START_OF_FOOTER );
-        error_log( 'handle_output_buffering():          $caller = ' . $caller );
-        error_log( 'handle_output_buffering():$ob_state->caller = ' . $ob_state->caller );
-        error_log( 'handle_output_buffering():$ob_state->ender  = ' . ( $ob_state->ender !== NULL ? $ob_state->ender
-                                                                                                  : 'end of execution' ) );
-        error_log( 'handle_output_buffering():$buffer=' . "\n#####\n" . $buffer . "\n#####" );
+        # error_log( 'handle_output_buffering():          $caller = ' . $caller );
+        # error_log( 'handle_output_buffering():$ob_state->caller = ' . $ob_state->caller );
+        # error_log( 'handle_output_buffering():$ob_state->ender  = ' . ( $ob_state->ender !== NULL ? $ob_state->ender
+        #                                                                                            : 'end of execution' ) );
+        # error_log( 'handle_output_buffering():$buffer=' . "\n#####\n" . $buffer . "\n#####" );
         if ( $caller === 'wp_body_open' || $caller === 'loop_end' ) {
             # ob_end_flush() can be called from multiple hooks - loop_end, get_sidebar, get_footer - or at the end of execution.
             # Hence, the buffer may or may not contain sidebars and/or the footer.
