@@ -199,10 +199,10 @@ namespace mc_shortcode_tester {
         $parent_of_mark = $contains_mark;
         ++$depth;
         while ( ( $left_offset = \mc_html_parser\get_start_tag( $buffer, $start, $length ) ) !== FALSE ) {
-            error_log( 'hide_html_elements():$ob_state->caller = ' . $ob_state->caller );
-            error_log( 'hide_html_elements():$ob_state->ender  = ' . ( $ob_state->ender !== NULL ? $ob_state->ender : 'end of execution' ) );
-            error_log( 'hide_html_elements():while:substr( $buffer, $start, $length - $start ) = ### while start ###'
-                           . substr( $buffer, $start, $length - $start ) . '### while end ###' );
+            # error_log( 'hide_html_elements():$ob_state->caller = ' . $ob_state->caller );
+            # error_log( 'hide_html_elements():$ob_state->ender  = ' . ( $ob_state->ender !== NULL ? $ob_state->ender : 'end of execution' ) );
+            # error_log( 'hide_html_elements():while:substr( $buffer, $start, $length - $start ) = ### while start ###'
+            #                . substr( $buffer, $start, $length - $start ) . '### while end ###' );
             if ( ++$n > 1024 ) {
                 # This should not happen. If it does probably a programming error causing an infinite loop.
                 error_log( 'ERROR:hide_html_elements():Probably in an infinite loop.' );
@@ -239,8 +239,8 @@ namespace mc_shortcode_tester {
                 }
                 # error_log( 'hide_html_elements():</tag>...=' . substr( $buffer, ( $offset + 1 ) - 16, 64 ) );
                 if ( ! is_null( $mark ) ) {
-                    error_log( 'hide_html_elements():innerHTML = ### inner start ###'
-                        . substr( $buffer, $gt_offset + 1, ( $offset - ( strlen( $name ) + 2 ) ) - ( $gt_offset + 1 ) ) . '### inner end ###' );
+                    # error_log( 'hide_html_elements():innerHTML = ### inner start ###'
+                    #     . substr( $buffer, $gt_offset + 1, ( $offset - ( strlen( $name ) + 2 ) ) - ( $gt_offset + 1 ) ) . '### inner end ###' );
                     if ( ( $marked = strpos( substr( $buffer, $gt_offset + 1, ( $offset - ( strlen( $name ) + 2 ) ) - ( $gt_offset + 1 ) ), $mark ) )
                             !== FALSE ) {
                         $parent_of_mark = FALSE;
@@ -258,7 +258,7 @@ namespace mc_shortcode_tester {
                         $length += $delta;
                         # error_log( 'hide_html_elements(): substr( $buffer, $offset - 8, 16 ) = [' .$depth . ']' . substr( $buffer, $offset - 8, 16 ) );
                         # error_log( 'hide_html_elements(): substr( $buffer, $length - 16, 16 ) = [' .$depth . ']' . substr( $buffer, $length - 16, 16 ) );
-                        error_log( 'hide_html_elements():mark found for "' . substr( $buffer, $left_offset, ( $gt_offset + 1 ) - $left_offset ) . '"' );
+                        # error_log( 'hide_html_elements():mark found for "' . substr( $buffer, $left_offset, ( $gt_offset + 1 ) - $left_offset ) . '"' );
                     }
                 }
             } else {   # if ( ! in_array( $name, [ 'img', 'br', 'hr', 'p' ] ) ) {
@@ -266,7 +266,7 @@ namespace mc_shortcode_tester {
             }
             if ( $marked === FALSE && ! in_array( $name, [ 'script' ] ) ) {
                 # Add element to list of elements to hide.
-                error_log( 'hide_html_elements():Element to hide = "' . substr( $buffer, $left_offset, ( $gt_offset + 1 ) - $left_offset ) . '"' );
+                # error_log( 'hide_html_elements():Element to hide = "' . substr( $buffer, $left_offset, ( $gt_offset + 1 ) - $left_offset ) . '"' );
                 $elements[ ] = (object) [ 'name' => $name, 'left' => $left_offset, 'right' => $gt_offset ];
             }
             $start = $offset + 1;
@@ -285,6 +285,7 @@ namespace mc_shortcode_tester {
             } else {
                 # Element already has an inline style attribute.
                 // TODO:
+                $buffer = substr_replace( $buffer, ' style="display:none;"', $element->right, 0 );
             }
             # JavaScript can make visible elements that we have hidden. Changing an element's id may defeat this.
             if ( ( $id_offset = strpos( substr( $buffer, $element->left, $element->right - ( $element->left - 1 ) ), 'id=' ) ) !== FALSE ) {
@@ -303,7 +304,7 @@ namespace mc_shortcode_tester {
         # error_log( 'handle_output_buffering():          $caller = ' . $caller );
         # error_log( 'handle_output_buffering():$ob_state->caller = ' . $ob_state->caller );
         # error_log( 'handle_output_buffering():$ob_state->ender  = ' . ( $ob_state->ender !== NULL ? $ob_state->ender
-        #                                                                                            : 'end of execution' ) );
+        #                                                                                           : 'end of execution' ) );
         # error_log( 'handle_output_buffering():$buffer=' . "\n#####\n" . $buffer . "\n#####" );
         if ( $caller === 'wp_body_open' || $caller === 'loop_end' ) {
             # ob_end_flush() can be called from multiple hooks - loop_end, get_sidebar, get_footer - or at the end of execution.
