@@ -42,6 +42,7 @@ namespace mc_shortcode_tester {
     define( 'START_OF_BODY',    '<!-- ##### ACTION:wp_body_open -->' );
     define( 'START_OF_CONTENT', '<!-- ##### FILTER:the_content start -->' );   # This is the mark.
     define( 'END_OF_CONTENT',   '<!-- ##### FILTER:the_content end -->' );
+    define( 'LOOP_END',         '<!-- ##### ACTION:loop_end -->' );
     define( 'START_OF_SIDEBAR', '<!-- ##### ACTION:get_sidebar -->' );
     define( 'START_OF_FOOTER',  '<!-- ##### ACTION:get_footer -->' );
 
@@ -185,17 +186,23 @@ namespace mc_shortcode_tester {
 
     # hide_html_elements() hides top level HTML elements if the HTML element does not contain the mark.
 
-    $hide_html_elements = function( $buffer, $start, $length, $mark = NULL, $is_fragment = FALSE, $contains_mark = FALSE ) {
-        # error_log( 'hide_html_elements():entry:substr( $buffer, $start, $length - $start ) = ### entry start ###'
-        #                . substr( $buffer, $start, $length - $start ) . '### entry end ###' );
+    $hide_html_elements = function( $buffer, $start, $length, $mark = NULL, $is_fragment = FALSE, $contains_mark = FALSE )
+                              use ( &$ob_state_stack ) {
         static $depth   = 0;
+        $ob_state       = end( $ob_state_stack );
+        error_log( 'hide_html_elements():$ob_state->caller = ' . $ob_state->caller );
+        error_log( 'hide_html_elements():$ob_state->ender  = ' . ( $ob_state->ender !== NULL ? $ob_state->ender : 'end of execution' ) );
+        error_log( 'hide_html_elements():entry:substr( $buffer, $start, $length - $start ) = ### entry start ###'
+                       . substr( $buffer, $start, $length - $start ) . '### entry end ###' );
         $elements       = [ ];
         $n              = 0;
         $parent_of_mark = $contains_mark;
         ++$depth;
         while ( ( $left_offset = \mc_html_parser\get_start_tag( $buffer, $start, $length ) ) !== FALSE ) {
-            # error_log( 'hide_html_elements():while:substr( $buffer, $start, $length - $start ) = ### while start ###'
-            #                . substr( $buffer, $start, $length - $start ) . '### while end ###' );
+            error_log( 'hide_html_elements():$ob_state->caller = ' . $ob_state->caller );
+            error_log( 'hide_html_elements():$ob_state->ender  = ' . ( $ob_state->ender !== NULL ? $ob_state->ender : 'end of execution' ) );
+            error_log( 'hide_html_elements():while:substr( $buffer, $start, $length - $start ) = ### while start ###'
+                           . substr( $buffer, $start, $length - $start ) . '### while end ###' );
             if ( ++$n > 1024 ) {
                 # This should not happen. If it does probably a programming error causing an infinite loop.
                 error_log( 'ERROR:hide_html_elements():Probably in an infinite loop.' );
@@ -251,13 +258,15 @@ namespace mc_shortcode_tester {
                         $length += $delta;
                         # error_log( 'hide_html_elements(): substr( $buffer, $offset - 8, 16 ) = [' .$depth . ']' . substr( $buffer, $offset - 8, 16 ) );
                         # error_log( 'hide_html_elements(): substr( $buffer, $length - 16, 16 ) = [' .$depth . ']' . substr( $buffer, $length - 16, 16 ) );
+                        error_log( 'hide_html_elements():mark found for "' . substr( $buffer, $left_offset, ( $gt_offset + 1 ) - $left_offset ) . '"' );
                     }
                 }
             } else {   # if ( ! in_array( $name, [ 'img', 'br', 'hr', 'p' ] ) ) {
                 $offset = $gt_offset;
             }
-            if ( ! $marked && ! in_array( $name, [ 'script' ] ) ) {
+            if ( $marked === FALSE && ! in_array( $name, [ 'script' ] ) ) {
                 # Add element to list of elements to hide.
+                error_log( 'hide_html_elements():Element to hide = "' . substr( $buffer, $left_offset, ( $gt_offset + 1 ) - $left_offset ) . '"' );
                 $elements[ ] = (object) [ 'name' => $name, 'left' => $left_offset, 'right' => $gt_offset ];
             }
             $start = $offset + 1;
@@ -285,29 +294,38 @@ namespace mc_shortcode_tester {
 
     $handle_output_buffering = function( $buffer, $caller ) use ( &$ob_state_stack ) {
         $ob_state             = end( $ob_state_stack );
-        $hide_html_elements   = Output_Buffering_State::$hide_html_elements;
         $start_of_sidebar_len = strlen( START_OF_SIDEBAR );
         $start_of_footer_len  = strlen( START_OF_FOOTER );
-        # error_log( 'handle_output_buffering():          $caller = ' . $caller );
-        # error_log( 'handle_output_buffering():$ob_state->caller = ' . $ob_state->caller );
-        # error_log( 'handle_output_buffering():$ob_state->ender  = ' . ( $ob_state->ender !== NULL ? $ob_state->ender
-        #                                                                                           : 'end of execution' ) );
-        # error_log( 'handle_output_buffering():$buffer=' . "\n#####\n" . $buffer . "\n#####" );
-        if ( $caller === 'wp_body_open' ) {
+        error_log( 'handle_output_buffering():          $caller = ' . $caller );
+        error_log( 'handle_output_buffering():$ob_state->caller = ' . $ob_state->caller );
+        error_log( 'handle_output_buffering():$ob_state->ender  = ' . ( $ob_state->ender !== NULL ? $ob_state->ender
+                                                                                                  : 'end of execution' ) );
+        error_log( 'handle_output_buffering():$buffer=' . "\n#####\n" . $buffer . "\n#####" );
+        if ( $caller === 'wp_body_open' || $caller === 'loop_end' ) {
             # ob_end_flush() can be called from multiple hooks - loop_end, get_sidebar, get_footer - or at the end of execution.
             # Hence, the buffer may or may not contain sidebars and/or the footer.
-            if ( strpos( $buffer, START_OF_BODY ) !== 0 ) {
+            if ( ( $caller === 'wp_body_open' && strpos( $buffer, START_OF_BODY ) !== 0 )
+                || ( $caller === 'loop_end' && strpos( $buffer, LOOP_END ) !== 0 ) ) {
                 error_log( 'ERROR:handle_output_buffering():unexpected start of body buffer, probably mismatched nested ob_start() output buffers.' );
                 error_log( 'ERROR:handle_output_buffering():$buffer = "' . substr( $buffer, 64 ) );
             }
             $sidebar_offset = strpos( $buffer, START_OF_SIDEBAR );
+            $content_offset = strpos( $buffer, START_OF_CONTENT );
             $footer_offset  = strpos( $buffer, START_OF_FOOTER );
+            $end_offset     = strlen( $buffer );
+            if ( $sidebar_offset < $content_offset ) {
+                $sidebar_offset = FALSE;
+            }
+            foreach ( [ $sidebar_offset, $footer_offset ] as $offset ) {
+                if ( $offset !== FALSE  && $offset < $end_offset ) {
+                    $end_offset = $offset;
+                }
+            }
             # $buffer contains a HTML fragment with embedded mark.
             $buffer = Output_Buffering_State::$hide_html_elements->call( new \mc_shortcode_tester\Null_(),
-                          $buffer, 0, $sidebar_offset !== FALSE ? $sidebar_offset
-                                                                : ( $footer_offset !== FALSE ? $footer_offset
-                                                                                             : strlen( $buffer ) ),
-                          START_OF_CONTENT, TRUE );
+                                                                         $buffer, 0, $end_offset,
+                                                                         $caller === 'wp_body_open' ? START_OF_CONTENT : NULL,
+                                                                         TRUE );
 /*
  * Sidebars are now cleaned in an earlier call to ob_flush().
             $offset = 0;
@@ -424,7 +442,13 @@ namespace mc_shortcode_tester {
                     break;
                 }
             }
-            # echo "<!-- ##### ACTION:loop_end -->\n";
+            # Since a content template may also contain "footer" of its own we also need to clean this "footer".
+            ob_start( function( $buffer ) {
+                return Output_Buffering_State::$handle_output_buffering->call( new \mc_shortcode_tester\Null_(),
+                                                                               $buffer, 'loop_end' );
+            } );
+            array_push( $ob_state_stack, new Output_Buffering_State( 'loop_end' ) );
+            echo LOOP_END ."\n";
         }, 10, 1 );
         add_action( 'wp_body_open', function( ) use ( &$ob_state_stack ) {
             ob_start( function( $buffer ) {
