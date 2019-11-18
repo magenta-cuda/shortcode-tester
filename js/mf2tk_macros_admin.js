@@ -20,8 +20,11 @@ jQuery(document).ready(function(){
             // Gutenberg
             permalink=jQuery("#wp-admin-bar-view a");
             if(!permalink.length){
-                window.alert("Error: Permalink not found. Please report this to the developer.");
-                return;
+                permalink=jQuery("a.editor-post-preview");
+                if(!permalink.length){
+                    window.alert("Error: Permalink not found. Please report this to the developer.");
+                    return;
+                }
             }
         }
         var button=jQuery("button#sct_ix-shortcode-tester");
