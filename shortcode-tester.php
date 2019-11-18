@@ -37,7 +37,7 @@ namespace mc_shortcode_tester {
 
 # TODO: Following needed for debugging only, remove for production.
 
-    require_once( 'debug_utilities.php' );
+    # require_once( 'debug_utilities.php' );
 
     define( 'START_OF_BODY',    '<!-- ##### ACTION:wp_body_open -->' );
     define( 'START_OF_CONTENT', '<!-- ##### FILTER:the_content start -->' );   # This is the mark.
