@@ -426,13 +426,22 @@ namespace mc_shortcode_tester {
         add_filter( 'the_title', function( $title ) {
             return '';
         } );
-        add_filter( 'the_content', function( $content ) {
+        # It can happen that a shortcode will make a recursive call to the 'the_content' filter.
+        # This of course may cause an infinite recursion so we need to monitor the nesting of calls to 'the_content' filter.
+        $the_content_filter_depth = 0;
+        add_filter( 'the_content', function( $content ) use ( &$the_content_filter_depth ) {
+            if ( ++$the_content_filter_depth !== 1 ) {
+                return $content;
+            }
             # Insert the mark into the post content and replace $content with $_REQUEST['post_content'].
             # This will evaluate $_REQUEST['post_content'] in the context of the post specified by the URL.
             # error_log( 'FILTER:the_content():$_REQUEST["post_content"] = ' . $_REQUEST['post_content'] );
             return '<div class="mc-sct-content">' . START_OF_CONTENT . "\n" . stripslashes( $_REQUEST['post_content'] ) . '</div>';
         }, 1 );
-        add_filter( 'the_content', function( $content ) {
+        add_filter( 'the_content', function( $content ) use ( &$the_content_filter_depth ) {
+            if ( --$the_content_filter_depth !== 0 ) {
+                return $content;
+            }
             return $content . "\n" . END_OF_CONTENT;
         }, PHP_INT_MAX );
         add_action( 'loop_end', function( &$query ) use ( &$ob_state_stack ) {
