@@ -22,8 +22,11 @@ jQuery(document).ready(function(){
             if(!permalink.length){
                 permalink=jQuery("a.editor-post-preview");
                 if(!permalink.length){
-                    window.alert("Error: Permalink not found. Please report this to the developer.");
-                    return;
+                    permalink=jQuery("a#sample-permalink");
+                    if(!permalink.length){
+                        window.alert("Error: Permalink not found. Please report this to the developer.");
+                        return;
+                    }
                 }
             }
         }
