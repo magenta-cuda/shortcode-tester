@@ -31,6 +31,7 @@ In addition to the HTML elements emitted by the PHP code for the shortcode, the 
 
 = 1.2.1 =
 * fix problem with non permalink URL's
+* fix "permalink not found" error after updating to WordPress 5.3
 * fix problem with "Show Rendered" on posts of type 'post'
 
 = 1.2 =
@@ -59,6 +60,7 @@ In addition to the HTML elements emitted by the PHP code for the shortcode, the 
 
 = 1.2.1 =
 * fix problem with non permalink URL's
+* fix "permalink not found" error after updating to WordPress 5.3
 * fix problem with "Show Rendered" on posts of type 'post'
 
 = 1.2 =
