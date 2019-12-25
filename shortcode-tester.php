@@ -264,10 +264,29 @@ namespace mc_shortcode_tester {
             } else {   # if ( ! in_array( $name, [ 'img', 'br', 'hr', 'p' ] ) ) {
                 $offset = $gt_offset;
             }
-            if ( $marked === FALSE && ! in_array( $name, [ 'script' ] ) ) {
-                # Add element to list of elements to hide.
-                # error_log( 'hide_html_elements():Element to hide = "' . substr( $buffer, $left_offset, ( $gt_offset + 1 ) - $left_offset ) . '"' );
-                $elements[ ] = (object) [ 'name' => $name, 'left' => $left_offset, 'right' => $gt_offset ];
+            if ( $marked === FALSE ) {
+                $hide           = TRUE;
+                $nullify_script = FALSE;
+                if ( $name === 'script' ) {
+                    $hide = FALSE;
+                    error_log( 'hide_html_elements():<script> = "' . substr( $buffer, $left_offset, ( $gt_offset + 1 ) - $left_offset ) . '"' );
+                    $tag = substr( $buffer, $left_offset, ( $gt_offset + 1 ) - $left_offset );
+                    if ( preg_match( '#src=("|\')([^\1]+?)\1#', $tag, $matches ) === 1 ) {
+                        error_log( 'hide_html_elements():src = "' . $matches[2] );
+                        if ( strpos( $matches[2], '/wp-content/themes/' ) !== FALSE ) {
+                            error_log( 'hide_html_elements():theme <script> = "' . substr( $buffer, $left_offset, ( $gt_offset + 1 ) - $left_offset ) . '"' );
+                            $nullify_script = TRUE;
+                        }
+                    }
+                }
+                if ( $hide ) {
+                    # Add element to list of elements to hide.
+                    # error_log( 'hide_html_elements():Element to hide = "' . substr( $buffer, $left_offset, ( $gt_offset + 1 ) - $left_offset ) . '"' );
+                    $elements[ ] = (object) [ 'name' => $name, 'left' => $left_offset, 'right' => $gt_offset ];
+                }
+                if ( $nullify_script ) {
+                    // TODO:
+                }
             }
             $start = $offset + 1;
         }   # while ( ( $left_offset = \mc_html_parser\get_start_tag( $buffer, $start, $length ) ) !== FALSE ) {
