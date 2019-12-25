@@ -265,27 +265,24 @@ namespace mc_shortcode_tester {
                 $offset = $gt_offset;
             }
             if ( $marked === FALSE ) {
-                $hide           = TRUE;
-                $nullify_script = FALSE;
+                $op = FALSE;
                 if ( $name === 'script' ) {
-                    $hide = FALSE;
                     error_log( 'hide_html_elements():<script> = "' . substr( $buffer, $left_offset, ( $gt_offset + 1 ) - $left_offset ) . '"' );
                     $tag = substr( $buffer, $left_offset, ( $gt_offset + 1 ) - $left_offset );
                     if ( preg_match( '#src=("|\')([^\1]+?)\1#', $tag, $matches ) === 1 ) {
                         error_log( 'hide_html_elements():src = "' . $matches[2] );
                         if ( strpos( $matches[2], '/wp-content/themes/' ) !== FALSE ) {
                             error_log( 'hide_html_elements():theme <script> = "' . substr( $buffer, $left_offset, ( $gt_offset + 1 ) - $left_offset ) . '"' );
-                            $nullify_script = TRUE;
+                            $op = 'nullify-script';
                         }
                     }
+                } else {
+                    $op = 'hide';
                 }
-                if ( $hide ) {
-                    # Add element to list of elements to hide.
+                if ( $op !== FALSE ) {
+                    # Add element to list of elements to hide or nullify.
                     # error_log( 'hide_html_elements():Element to hide = "' . substr( $buffer, $left_offset, ( $gt_offset + 1 ) - $left_offset ) . '"' );
-                    $elements[ ] = (object) [ 'op' => 'hide', 'name' => $name, 'left' => $left_offset, 'right' => $gt_offset ];
-                }
-                if ( $nullify_script ) {
-                    $elements[ ] = (object) [ 'op' => 'nullify-script', 'name' => $name, 'left' => $left_offset, 'right' => $gt_offset ];
+                    $elements[ ] = (object) [ 'op' => $op, 'name' => $name, 'left' => $left_offset, 'right' => $gt_offset ];
                 }
             }
             $start = $offset + 1;
@@ -312,7 +309,8 @@ namespace mc_shortcode_tester {
                     $buffer = substr_replace( $buffer, 'xxx-', $element->left + $id_offset + 4, 0 );
                 }
             } else if ( $element->op === 'nullify-script' ) {
-                $buffer = substr_replace( $buffer, '<script>nullified by shortcode-tester', $element->left, ( $element->right + 1 ) - $element->left );
+                # Prevent script from loading.
+                $buffer = substr_replace( $buffer, '<script>/* Nullified by shortcode-tester. */', $element->left, ( $element->right + 1 ) - $element->left );
             }
         }
         # error_log( 'hide_html_elements():return=' . "\n#####\n" . $buffer . "/n#####" );
