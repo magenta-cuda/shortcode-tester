@@ -282,10 +282,10 @@ namespace mc_shortcode_tester {
                 if ( $hide ) {
                     # Add element to list of elements to hide.
                     # error_log( 'hide_html_elements():Element to hide = "' . substr( $buffer, $left_offset, ( $gt_offset + 1 ) - $left_offset ) . '"' );
-                    $elements[ ] = (object) [ 'name' => $name, 'left' => $left_offset, 'right' => $gt_offset ];
+                    $elements[ ] = (object) [ 'op' => 'hide', 'name' => $name, 'left' => $left_offset, 'right' => $gt_offset ];
                 }
                 if ( $nullify_script ) {
-                    // TODO:
+                    $elements[ ] = (object) [ 'op' => 'nullify-script', 'name' => $name, 'left' => $left_offset, 'right' => $gt_offset ];
                 }
             }
             $start = $offset + 1;
@@ -299,16 +299,20 @@ namespace mc_shortcode_tester {
         foreach ( array_reverse( $elements ) as $element ) {
             # error_log( 'hide_html_elements():$name=' . $element->name );
             # error_log( 'hide_html_elements():tag=' . substr( $buffer, $element->left, $element->right - ( $element->left - 1 ) ) );
-            if ( ( $style_offset = strpos( substr( $buffer, $element->left, $element->right - ( $element->left - 1 ) ), 'style=' ) ) === FALSE ) {
-                $buffer = substr_replace( $buffer, ' style="display:none;"', $element->right, 0 );
-            } else {
-                # Element already has an inline style attribute.
-                // TODO:
-                $buffer = substr_replace( $buffer, ' style="display:none;"', $element->right, 0 );
-            }
-            # JavaScript can make visible elements that we have hidden. Changing an element's id may defeat this.
-            if ( ( $id_offset = strpos( substr( $buffer, $element->left, $element->right - ( $element->left - 1 ) ), 'id=' ) ) !== FALSE ) {
-                $buffer = substr_replace( $buffer, 'xxx-', $element->left + $id_offset + 4, 0 );
+            if ( $element->op === 'hide' ) {
+                if ( ( $style_offset = strpos( substr( $buffer, $element->left, $element->right - ( $element->left - 1 ) ), 'style=' ) ) === FALSE ) {
+                    $buffer = substr_replace( $buffer, ' style="display:none;"', $element->right, 0 );
+                } else {
+                    # Element already has an inline style attribute.
+                    // TODO:
+                    $buffer = substr_replace( $buffer, ' style="display:none;"', $element->right, 0 );
+                }
+                # JavaScript can make visible elements that we have hidden. Changing an element's id may defeat this.
+                if ( ( $id_offset = strpos( substr( $buffer, $element->left, $element->right - ( $element->left - 1 ) ), 'id=' ) ) !== FALSE ) {
+                    $buffer = substr_replace( $buffer, 'xxx-', $element->left + $id_offset + 4, 0 );
+                }
+            } else if ( $element->op === 'nullify-script' ) {
+                $buffer = substr_replace( $buffer, '<script>nullified by shortcode-tester', $element->left, ( $element->right + 1 ) - $element->left );
             }
         }
         # error_log( 'hide_html_elements():return=' . "\n#####\n" . $buffer . "/n#####" );
