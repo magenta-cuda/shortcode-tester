@@ -7,3 +7,9 @@ gulp.task('dev', function(){
         .pipe(gulp.dest('/var/www/html/wp-content/plugins/shortcode-tester'))
 });
 
+gulp.task('prod', function(){
+    return gulp.src(['*.php', '*.ini', '*.txt', 'css/*.css', 'js/*.js', '!gulpfile.js', '!debug_utilities.php'], {"base":"."})
+        .pipe(chmod(0644))
+        .pipe(gulp.dest('/var/www/html/wp-content/plugins/shortcode-tester'))
+});
+
