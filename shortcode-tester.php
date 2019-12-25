@@ -267,12 +267,12 @@ namespace mc_shortcode_tester {
             if ( $marked === FALSE ) {
                 $op = FALSE;
                 if ( $name === 'script' ) {
-                    error_log( 'hide_html_elements():<script> = "' . substr( $buffer, $left_offset, ( $gt_offset + 1 ) - $left_offset ) . '"' );
+                    # error_log( 'hide_html_elements():<script> = "' . substr( $buffer, $left_offset, ( $gt_offset + 1 ) - $left_offset ) . '"' );
                     $tag = substr( $buffer, $left_offset, ( $gt_offset + 1 ) - $left_offset );
                     if ( preg_match( '#src=("|\')([^\1]+?)\1#', $tag, $matches ) === 1 ) {
-                        error_log( 'hide_html_elements():src = "' . $matches[2] );
+                        # error_log( 'hide_html_elements():src = "' . $matches[2] );
                         if ( strpos( $matches[2], '/wp-content/themes/' ) !== FALSE ) {
-                            error_log( 'hide_html_elements():theme <script> = "' . substr( $buffer, $left_offset, ( $gt_offset + 1 ) - $left_offset ) . '"' );
+                            # error_log( 'hide_html_elements():theme <script> = "' . substr( $buffer, $left_offset, ( $gt_offset + 1 ) - $left_offset ) . '"' );
                             $op = 'nullify-script';
                         }
                     }

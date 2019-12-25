@@ -4,7 +4,7 @@
 Plugin Name: Shortcode Tester
 Plugin URI:  https://github.com/magenta-cuda/shortcode-tester
 Description: a simple shortcode tester
-Version:     1.2.1
+Version:     1.2.2
 Author:      Magenta Cuda
 Author URI:  https://github.com/magenta-cuda
 License:     GPL2
