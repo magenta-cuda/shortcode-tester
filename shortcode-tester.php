@@ -136,6 +136,8 @@ namespace mc_shortcode_tester {
         <button id="mf2tk-shortcode-tester-show-result" class="mf2tk-shortcode-tester-button">Show Result Only</button>
         <button id="mf2tk-shortcode-tester-show-both" class="mf2tk-shortcode-tester-button">Show Both</button>
         <button id="mf2tk-shortcode-tester-show-rendered" class="mf2tk-shortcode-tester-button">Show Rendered</button>
+        <input type="checkbox" id="mf2tk-shortcode-tester-nullify-theme-scripts" class="mf2tk-shortcode-tester-checkbox" value="nullify-theme-scripts">
+        <span>Disable Theme Scripts</span>
     </div>
     <div class="sct_ix-shortcode_tester_input_output">
         <div class="sct_ix-shortcode_tester_half">
@@ -268,12 +270,14 @@ namespace mc_shortcode_tester {
                 $op = FALSE;
                 if ( $name === 'script' ) {
                     # error_log( 'hide_html_elements():<script> = "' . substr( $buffer, $left_offset, ( $gt_offset + 1 ) - $left_offset ) . '"' );
-                    $tag = substr( $buffer, $left_offset, ( $gt_offset + 1 ) - $left_offset );
-                    if ( preg_match( '#src=("|\')([^\1]+?)\1#', $tag, $matches ) === 1 ) {
-                        # error_log( 'hide_html_elements():src = "' . $matches[2] );
-                        if ( strpos( $matches[2], '/wp-content/themes/' ) !== FALSE ) {
-                            # error_log( 'hide_html_elements():theme <script> = "' . substr( $buffer, $left_offset, ( $gt_offset + 1 ) - $left_offset ) . '"' );
-                            $op = 'nullify-script';
+                    if ( array_key_exists( 'theme_scripts', $_REQUEST ) && $_REQUEST['theme_scripts'] === 'nullify' ) {
+                        $tag = substr( $buffer, $left_offset, ( $gt_offset + 1 ) - $left_offset );
+                        if ( preg_match( '#src=("|\')([^\1]+?)\1#', $tag, $matches ) === 1 ) {
+                            # error_log( 'hide_html_elements():src = "' . $matches[2] );
+                            if ( strpos( $matches[2], '/wp-content/themes/' ) !== FALSE ) {
+                                # error_log( 'hide_html_elements():theme <script> = "' . substr( $buffer, $left_offset, ( $gt_offset + 1 ) - $left_offset ) . '"' );
+                                $op = 'nullify-script';
+                            }
                         }
                     }
                 } else {

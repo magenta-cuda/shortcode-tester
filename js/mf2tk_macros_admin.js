@@ -48,6 +48,9 @@ jQuery(document).ready(function(){
             var top=window.screen.height/2-height/2;
             var features="left="+left+",top="+top+",width="+width+",height="+height+",location=0,resizable,scrollbars,menubar=0";
             url+=punc+"mc-sct=tpcti_html_eval_post_content&post_content="+encodeURI(source);
+            if(jQuery("input#mf2tk-shortcode-tester-nullify-theme-scripts").prop("checked")){
+                url+="&theme_scripts=nullify";
+            }
             window.open(url,"mc-sct-rendered",features);
             return;
         }
