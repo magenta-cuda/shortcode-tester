@@ -13,8 +13,8 @@ jQuery(document).ready(function(){
         divPopupOuter.hide();
     });
     // "Shortcode Tester" evaluate button
-    divShortcode.find("button#mf2tk-shortcode-tester-evaluate,button#mf2tk-shortcode-tester-evaluate-and-prettify,button#mf2tk-shortcode-tester-show-rendered")
-            .click(function(){
+    divShortcode.find("button#mf2tk-shortcode-tester-evaluate,button#mf2tk-shortcode-tester-evaluate-and-prettify,"
+            +"button#mf2tk-shortcode-tester-show-rendered,button#mf2tk-shortcode-tester-alt-show-rendered").click(function(){
         var permalink=jQuery("#sample-permalink a");
         if(!permalink.length){
             // Gutenberg
@@ -41,14 +41,14 @@ jQuery(document).ready(function(){
         var url=permalink[0].href;
         var punc=url.indexOf("?")===-1?"?":"&";
         var source=jQuery("div#mf2tk-shortcode-tester div#mf2tk-shortcode-tester-area-source textarea").val();
-        if(this.id==="mf2tk-shortcode-tester-show-rendered"){
+        if(this.id==="mf2tk-shortcode-tester-show-rendered"||this.id==="mf2tk-shortcode-tester-alt-show-rendered"){
             var width=640;
             var height=480;
             var left=window.screen.width/2-width/2;
             var top=window.screen.height/2-height/2;
             var features="left="+left+",top="+top+",width="+width+",height="+height+",location=0,resizable,scrollbars,menubar=0";
             url+=punc+"mc-sct=tpcti_html_eval_post_content&post_content="+encodeURI(source);
-            if(jQuery("input#mf2tk-shortcode-tester-nullify-theme-scripts").prop("checked")){
+            if(this.id==="mf2tk-shortcode-tester-alt-show-rendered"){
                 url+="&theme_scripts=nullify";
             }
             window.open(url,"mc-sct-rendered",features);
