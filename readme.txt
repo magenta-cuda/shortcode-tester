@@ -24,13 +24,17 @@ The Shortcode Tester is a post editor tool for WordPress developers that display
 = "Show Rendered" shows less than the shortcode HTML elements. =
 In addition to the HTML elements emitted by the PHP code for the shortcode, the shortcode may have JavaScript code to dynamically emit additional HTML elements. The shortcode tester hides non shortcode HTML elements by setting the CSS display property to none and changing the element id. These changes may affect the execution of the shortcode's JavaScript code.
 
+= "Show Rendered" vs "Alt Show Rendered" =
+
+"Show Rendered" allows all JavaScript code to execute. Unfortunately, the shortcode tester hides non shortcode HTML elements and this may cause some JavaScript code to abort which prevents the execution of the shortcode's JavaScript code. "Alt Show Rendered" suppresses the execution of the theme's JavaScript code and this may allow the shortcode's JavaScript code to execute.
+
 == Screenshots ==
 1. The Shortcode Tester
 
 == Changelog ==
 
 = 1.2.2 =
-* prevent theme scripts from running
+* added "Alt Show Rendered" button which prevent the theme's scripts from running
 
 = 1.2.1 =
 * fix problem with non permalink URL's
@@ -62,7 +66,7 @@ In addition to the HTML elements emitted by the PHP code for the shortcode, the 
 == Upgrade Notice ==
 
 = 1.2.2 =
-* prevent theme scripts from running
+* added "Alt Show Rendered" button which prevent the theme's scripts from running
 
 = 1.2.1 =
 * fix problem with non permalink URL's
