@@ -28,6 +28,10 @@ In addition to the HTML elements emitted by the PHP code for the shortcode, the 
 
 "Show Rendered" allows all JavaScript code to execute. Unfortunately, the shortcode tester hides non shortcode HTML elements and this may cause some JavaScript code to abort which prevents the execution of the shortcode's JavaScript code. "Alt Show Rendered" suppresses the execution of the theme's JavaScript code and this may allow the shortcode's JavaScript code to execute.
 
+= Does "Show Rendered" require that the shortcode have support for Gutenberg blocks? =
+
+No. "Show Rendered" does not use Gutenberg blocks. It uses the WordPress server to render the shortcode as it would when the page is requested from the browser and tries to skip rendering everything but the shortcode. In particular, it will work with old plugins that do not have support for Gutenberg blocks.
+
 == Screenshots ==
 1. The Shortcode Tester
 
