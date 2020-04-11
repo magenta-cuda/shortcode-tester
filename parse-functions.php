@@ -1,8 +1,10 @@
 <?php
 
+# This is a specialized HTML parser for use by the shortcode tester.
+
 namespace mc_html_parser {
-    function get_start_tag( $buffer, $offset, $length ) {
-        for ( ; $offset < $length; $offset++ ) {
+    function get_start_tag( $buffer, $offset, $end_offset ) {
+        for ( ; $offset < $end_offset; $offset++ ) {
             if ( $buffer[ $offset ] === '<' ) {
                 if ( $buffer[ $offset + 1 ] !== '/' && $buffer[ $offset + 1 ] !== '!' ) {
                     return $offset;
@@ -11,16 +13,16 @@ namespace mc_html_parser {
         }
         return FALSE;
     }
-    function get_name( $buffer, $offset, $length ) {
-        for ( ; $offset < $length; $offset++ ) {
+    function get_name( $buffer, $offset, $end_offset ) {
+        for ( ; $offset < $end_offset; $offset++ ) {
             if ( ! ctype_alpha( $buffer[ $offset ] ) ) {
                 return $offset - 1;
             }
         }
         return $offset;
     }
-    function get_greater_than( $buffer, $offset, $length ) {
-        for ( ; $offset < $length; $offset++ ) {
+    function get_greater_than( $buffer, $offset, $end_offset ) {
+        for ( ; $offset < $end_offset; $offset++ ) {
             # Attributes may have string values.
             # Strings are dangerous as they may contain HTML tags so find the ending delimiter.
             if ( $buffer[ $offset ] === '"' || $buffer[ $offset ] === '\'' ) {
@@ -40,7 +42,7 @@ namespace mc_html_parser {
         error_log( 'ERROR:\mc_html_parser\get_greater_than():The buffer begins with: "' . substr( $buffer, $offset, 64 ) . '..."' );
         return FALSE;
     };
-    function get_end_tag( $tag, $buffer, $offset, $length ) {
+    function get_end_tag( $tag, $buffer, $offset, $end_offset ) {
         if ( $tag === 'script' ) {
             # <script> elements are dangerous as they can contain strings which can contain HTML tags.
             # However, they are easier to parse as they cannot contain a nested <script> element.
@@ -49,7 +51,7 @@ namespace mc_html_parser {
             }
             return FALSE;
         }
-        for ( ; $offset < $length; $offset++ ) {
+        for ( ; $offset < $end_offset; $offset++ ) {
             # error_log( '\mc_html_parser\get_end_tag():substr( $buffer, $offset, 16 ) = ' . substr( $buffer, $offset, 16 ) );
             # Strings are dangerous as they may contain HTML tags so find the ending delimiter.
             if ( $buffer[ $offset ] === '"' || $buffer[ $offset ] === '\'' ) {
@@ -71,19 +73,19 @@ namespace mc_html_parser {
                 } else if ( $buffer[ $offset + 1 ] !== '!' ) {
                     # This is an inner HTML element.
                     $prev_offset = $offset;
-                    $offset      = get_name( $buffer, $offset + 1, $length );
+                    $offset      = get_name( $buffer, $offset + 1, $end_offset );
                     $inner_tag   = substr( $buffer, $prev_offset + 1, $offset - $prev_offset );
                     if ( $inner_tag !== $tag ) {
                         continue;
                     }
                     # This is nested HTML element of the same tag.
                     # The ending tag </name> of this nested element is not the matching end tag and should be ignored.
-                    if ( ( $gt_offset = get_greater_than( $buffer, $offset + 1, $length ) ) === FALSE ) {
+                    if ( ( $gt_offset = get_greater_than( $buffer, $offset + 1, $end_offset ) ) === FALSE ) {
                         error_log( 'ERROR:\mc_html_parser\get_end_tag():Cannot find matching \'>\'' );
                         error_log( 'ERROR:\mc_html_parser\get_end_tag():The HTML element begins with: "' . substr( $buffer, $prev_offset, 64 ) . '..."' );
                         return FALSE;
                     }
-                    if ( ( $offset = get_end_tag( $inner_tag, $buffer, $gt_offset + 1, $length ) ) === FALSE ) {
+                    if ( ( $offset = get_end_tag( $inner_tag, $buffer, $gt_offset + 1, $end_offset ) ) === FALSE ) {
                         # error_log( 'ERROR:\mc_html_parser\get_end_tag():Cannot find matching end tag "</' . $inner_tag . '>".' );
                         # error_log( 'ERROR:\mc_html_parser\get_end_tag():The HTML element begins with: "' . substr( $buffer, $prev_offset, 64 ) . '..."' );
                         # If we are parsing a HTML fragment then this may not be an error as the fragment may not yet be complete.
@@ -96,7 +98,7 @@ namespace mc_html_parser {
         }
         # error_log( 'ERROR:\mc_html_parser\get_end_tag():Cannot find matching end tag "</' . $tag . '>".' );
         # error_log( 'ERROR:\mc_html_parser\get_end_tag():substr( $buffer, $offset - 16, 16 ) = ' . substr( $buffer, $offset - 16, 16 ) );
-        # error_log( 'ERROR:\mc_html_parser\get_end_tag():substr( $buffer, $length - 16, 16 ) = ' . substr( $buffer, $length - 16, 16 ) );
+        # error_log( 'ERROR:\mc_html_parser\get_end_tag():substr( $buffer, $end_offset - 16, 16 ) = ' . substr( $buffer, $end_offset - 16, 16 ) );
         # If we are parsing a HTML fragment then this may not be an error as the fragment may not yet be complete.
         # The caller should handle this possible error.
         return FALSE;
