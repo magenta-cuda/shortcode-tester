@@ -189,23 +189,23 @@ namespace mc_shortcode_tester {
 
     # hide_html_elements() hides top level HTML elements if the HTML element does not contain the mark.
 
-    $hide_html_elements = function( $buffer, $start, $length, $mark = NULL, $is_fragment = FALSE, $contains_mark = FALSE )
+    $hide_html_elements = function( $buffer, $start, $end_offset, $mark = NULL, $is_fragment = FALSE, $contains_mark = FALSE )
                               use ( &$ob_state_stack ) {
         static $depth   = 0;
         $ob_state       = end( $ob_state_stack );
         # error_log( 'hide_html_elements():$ob_state->caller = ' . $ob_state->caller );
         # error_log( 'hide_html_elements():$ob_state->ender  = ' . ( $ob_state->ender !== NULL ? $ob_state->ender : 'end of execution' ) );
-        # error_log( 'hide_html_elements():entry:substr( $buffer, $start, $length - $start ) = ### entry start ###'
-        #                . substr( $buffer, $start, $length - $start ) . '### entry end ###' );
+        # error_log( 'hide_html_elements():entry:substr( $buffer, $start, $end_offset - $start ) = ### entry start ###'
+        #                . substr( $buffer, $start, $end_offset - $start ) . '### entry end ###' );
         $elements       = [ ];
         $n              = 0;
         $parent_of_mark = $contains_mark;
         ++$depth;
-        while ( ( $left_offset = \mc_html_parser\get_start_tag( $buffer, $start, $length ) ) !== FALSE ) {
+        while ( ( $left_offset = \mc_html_parser\get_start_tag( $buffer, $start, $end_offset ) ) !== FALSE ) {
             # error_log( 'hide_html_elements():$ob_state->caller = ' . $ob_state->caller );
             # error_log( 'hide_html_elements():$ob_state->ender  = ' . ( $ob_state->ender !== NULL ? $ob_state->ender : 'end of execution' ) );
-            # error_log( 'hide_html_elements():while:substr( $buffer, $start, $length - $start ) = ### while start ###'
-            #                . substr( $buffer, $start, $length - $start ) . '### while end ###' );
+            # error_log( 'hide_html_elements():while:substr( $buffer, $start, $end_offset - $start ) = ### while start ###'
+            #                . substr( $buffer, $start, $end_offset - $start ) . '### while end ###' );
             if ( ++$n > 1024 ) {
                 # This should not happen. If it does probably a programming error causing an infinite loop.
                 error_log( 'ERROR:hide_html_elements():Probably in an infinite loop.' );
@@ -214,10 +214,10 @@ namespace mc_shortcode_tester {
                 break;
             }
             # error_log( 'hide_html_elements():$start=' . $start );
-            $right_offset = \mc_html_parser\get_name( $buffer, $left_offset + 1, $length );
+            $right_offset = \mc_html_parser\get_name( $buffer, $left_offset + 1, $end_offset );
             $name         = substr( $buffer, $left_offset + 1, $right_offset - $left_offset );
             # error_log( 'hide_html_elements():$name=' . $name );
-            if ( ( $gt_offset = \mc_html_parser\get_greater_than( $buffer, $right_offset + 1, $length ) ) === FALSE ) {
+            if ( ( $gt_offset = \mc_html_parser\get_greater_than( $buffer, $right_offset + 1, $end_offset ) ) === FALSE ) {
                 error_log( 'ERROR:hide_html_elements():Cannot find matching \'>\' for tag beginning with "' . substr( $buffer, $left_offset, 64 ) . '...' );
                 break;
             }
@@ -225,7 +225,7 @@ namespace mc_shortcode_tester {
             if ( ! in_array( $name, [ 'img', 'br', 'hr', 'p' ] ) ) {
                 # Tag <name> should have a matching end tag </name>.
                 # error_log( 'hide_html_elements():...>...=' . substr( $buffer, ( $gt_offset + 1 ) - 16, 64 ) );
-                if ( ( $offset = \mc_html_parser\get_end_tag( $name, $buffer, $gt_offset + 1, $length ) ) === FALSE ) {
+                if ( ( $offset = \mc_html_parser\get_end_tag( $name, $buffer, $gt_offset + 1, $end_offset ) ) === FALSE ) {
                     # This should only happen on malformed HTML, i.e. no matching end tag </tag>.
                     if ( $is_fragment ) {
                         # error_log( 'hide_html_elements():Cannot find matching end tag "</' . $name . '>".' );
@@ -237,7 +237,7 @@ namespace mc_shortcode_tester {
                     }
                     error_log( 'ERROR:hide_html_elements():Cannot find matching end tag "</' . $name . '>".' );
                     error_log( 'ERROR:hide_html_elements():HTML element begins with: "' . substr( $buffer, $left_offset, 64 ) . '..."' );
-                    error_log( 'ERROR:hide_html_elements():buffer = #####' . substr( $buffer, $gt_offset + 1, $length - ( $gt_offset + 1 ) ) . '#####' );
+                    error_log( 'ERROR:hide_html_elements():buffer = #####' . substr( $buffer, $gt_offset + 1, $end_offset - ( $gt_offset + 1 ) ) . '#####' );
                     return FALSE;
                 }
                 # error_log( 'hide_html_elements():</tag>...=' . substr( $buffer, ( $offset + 1 ) - 16, 64 ) );
@@ -249,18 +249,18 @@ namespace mc_shortcode_tester {
                         $parent_of_mark = FALSE;
                         # Remove siblings of marked.
                         # error_log( 'hide_html_elements(): substr( $buffer, $offset - 8, 16 ) = [' . $depth . ']' . substr( $buffer, $offset - 8, 16 ) );
-                        # error_log( 'hide_html_elements(): substr( $buffer, $length - 16, 16 ) = [' . $depth . ']' . substr( $buffer, $length - 16, 16 ) );
+                        # error_log( 'hide_html_elements(): substr( $buffer, $end_offset - 16, 16 ) = [' . $depth . ']' . substr( $buffer, $end_offset - 16, 16 ) );
                         $buffer_length = strlen( $buffer );
                         $buffer = Output_Buffering_State::$hide_html_elements->call( new \mc_shortcode_tester\Null_(),
                                                                                      $buffer, $gt_offset + 1,
                                                                                      $offset - ( strlen( $name ) + 2 ),
                                                                                      $mark, FALSE, TRUE );
-                        # $buffer has changed so adjust $offset and $length.
+                        # $buffer has changed so adjust $offset and $end_offset.
                         $delta = strlen( $buffer ) - $buffer_length;
                         $offset += $delta;
-                        $length += $delta;
+                        $end_offset += $delta;
                         # error_log( 'hide_html_elements(): substr( $buffer, $offset - 8, 16 ) = [' .$depth . ']' . substr( $buffer, $offset - 8, 16 ) );
-                        # error_log( 'hide_html_elements(): substr( $buffer, $length - 16, 16 ) = [' .$depth . ']' . substr( $buffer, $length - 16, 16 ) );
+                        # error_log( 'hide_html_elements(): substr( $buffer, $end_offset - 16, 16 ) = [' .$depth . ']' . substr( $buffer, $end_offset - 16, 16 ) );
                         # error_log( 'hide_html_elements():mark found for "' . substr( $buffer, $left_offset, ( $gt_offset + 1 ) - $left_offset ) . '"' );
                     }
                 }
@@ -291,7 +291,7 @@ namespace mc_shortcode_tester {
                 }
             }
             $start = $offset + 1;
-        }   # while ( ( $left_offset = \mc_html_parser\get_start_tag( $buffer, $start, $length ) ) !== FALSE ) {
+        }   # while ( ( $left_offset = \mc_html_parser\get_start_tag( $buffer, $start, $end_offset ) ) !== FALSE ) {
         if ( $contains_mark && $parent_of_mark ) {
             # This container has the mark as a direct descendant.
             --$depth;
@@ -321,7 +321,7 @@ namespace mc_shortcode_tester {
         # error_log( 'hide_html_elements():return=' . "\n#####\n" . $buffer . "/n#####" );
         --$depth;
         return $buffer;
-    };
+    };   # $hide_html_elements = function( $buffer, $start, $end_offset, $mark = NULL, $is_fragment = FALSE, $contains_mark = FALSE )
 
     $handle_output_buffering = function( $buffer, $caller ) use ( &$ob_state_stack ) {
         $ob_state             = end( $ob_state_stack );
@@ -413,7 +413,7 @@ namespace mc_shortcode_tester {
         # Reset $ob_state.
         array_pop( $ob_state_stack );
         return $buffer;
-    };
+    };   # $handle_output_buffering = function( $buffer, $caller ) use ( &$ob_state_stack ) {
 
     class Output_Buffering_State {
         public $on;
