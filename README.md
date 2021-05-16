@@ -2,6 +2,8 @@
 
 ![Screenshot](https://raw.githubusercontent.com/magenta-cuda/shortcode-tester/master/assets/both-70.png)
 
+A more recent version for ClassicPress is available at https://github.com/basic-tech/classic-shortcode-tester.
+
 The shortcode tester is a very simple post content editor tool for displaying the HTML generated from WordPress shortcodes in a popup window. To display the shortcode tester from the post editor page click on the Shortcode Tester button in the editor’s toolbar at the top of the page. (For the "Block Editor" it should be to the immediate right of the Block Navigation button. For the "Classic Editor" it should be to the immediate right of the "Add Media" button.)
 
 "Block Editor": ![Toolbar](https://raw.githubusercontent.com/magenta-cuda/shortcode-tester/master/assets/toolbar-gutenberg.png)
