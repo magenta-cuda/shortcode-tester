@@ -76,7 +76,7 @@ namespace mc_shortcode_tester {
                     libxml_use_internal_errors( TRUE );
                     $dom = new \DOMDocument( );
                     $dom->preserveWhiteSpace = FALSE;
-                    $dom->loadHTML( $html );
+                    $dom->loadHTML( $html, LIBXML_NOBLANKS );
                     $dom->normalizeDocument( );
                     $dom->formatOutput = TRUE;
                     # saveHTML( ) doesn't format but saveXML( ) does. Why? see http://stackoverflow.com/questions/768215/php-pretty-print-html-not-tidy
